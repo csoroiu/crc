@@ -34,7 +34,7 @@ public class CRC64UnreflectedTest {
         assertEquals(Long.toHexString(crcParameters.getCheck()), Long.toHexString(value));
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{0}")
     public static List<CRCParameters> getCRCParameters() {
         CRCParameters crc64 = new CRCParameters("CRC-64", 64, 0x42F0E1EBA9EA3693L, 0,
                 false, false, 0, 0x6c40df5f0b497347L, 0);

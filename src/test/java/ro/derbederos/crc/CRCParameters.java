@@ -58,4 +58,11 @@ public class CRCParameters {
     public long getResidue() {
         return residue;
     }
+
+    @Override
+    public String toString() {
+        return "CRCParameters{" +
+                "name='" + name + '\'' +
+                '}';
+    }
 }

@@ -30,6 +30,7 @@ public class CRC64Generic implements Checksum {
         } else {
             initLookupTableUnreflected();
         }
+        reset();
     }
 
     private void initLookupTableReflected() {

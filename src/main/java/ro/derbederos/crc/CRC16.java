@@ -28,6 +28,7 @@ public class CRC16 implements Checksum {
         } else {
             initLookupTableUnreflected();
         }
+        reset();
     }
 
     private void initLookupTableReflected() {

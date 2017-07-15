@@ -22,6 +22,7 @@ public class CRC64Reflected implements Checksum {
         this.refOut = refOut;
         this.xorOut = xorOut;
         initLookupTableReflected();
+        reset();
     }
 
     private void initLookupTableReflected() {

@@ -22,6 +22,7 @@ public class CRC64Unreflected implements Checksum {
         this.refOut = refOut;
         this.xorOut = xorOut;
         initLookupTableUnreflected();
+        reset();
     }
 
     private void initLookupTableUnreflected() {
