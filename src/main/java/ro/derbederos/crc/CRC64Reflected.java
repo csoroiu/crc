@@ -5,20 +5,24 @@ import java.util.zip.Checksum;
 /*
  * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  * http://reveng.sourceforge.net/crc-catalogue/
+ * http://zlib.net/crc_v3.txt
+ */
+
+/**
+ * Byte-wise CRC implementation that can compute CRC-64 for little endian (reflected) byte input using different models.
  */
 public class CRC64Reflected implements Checksum {
 
     final private long lookupTable[] = new long[0x100];
     final private long poly;
-    final private long initialValue;
+    final private long init;
     final private boolean refOut; // resulted sum needs to be reversed before xor
     final private long xorOut;
     private long crc;
 
-    public CRC64Reflected(long poly, long initialValue,
-                          boolean refOut, long xorOut) {
+    public CRC64Reflected(long poly, long init, boolean refOut, long xorOut) {
         this.poly = poly;
-        this.initialValue = initialValue;
+        this.init = init;
         this.refOut = refOut;
         this.xorOut = xorOut;
         initLookupTableReflected();
@@ -41,7 +45,7 @@ public class CRC64Reflected implements Checksum {
     }
 
     public void reset() {
-        crc = Long.reverse(initialValue);
+        crc = Long.reverse(init);
     }
 
     public void update(int b) {
@@ -53,9 +57,13 @@ public class CRC64Reflected implements Checksum {
     }
 
     public void update(byte src[], int offset, int len) {
+        updateReflected(src, offset, len);
+    }
+
+    private void updateReflected(byte[] src, int offset, int len) {
         for (int i = offset; i < offset + len; i++) {
-            byte value = src[i];
-            update(value);
+            int value = src[i];
+            crc = (crc >>> 8) ^ lookupTable[(int) ((crc ^ value) & 0xff)];
         }
     }
 

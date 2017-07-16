@@ -9,28 +9,25 @@ import java.util.List;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static ro.derbederos.crc.Util.longToBytes;
-import static ro.derbederos.crc.Util.roundToByte;
 
 @RunWith(Parameterized.class)
-public class CRC64GenericTest {
+public class CRC16GenericTest {
     private static final byte[] testInput = "123456789".getBytes();
     private CRCModel crcModel;
 
-    public CRC64GenericTest(CRCModel crcModel) {
+    public CRC16GenericTest(CRCModel crcModel) {
         this.crcModel = crcModel;
     }
 
     @Test
     public void testCRCValue() {
-        Checksum checksum = new CRC64Generic(
+        Checksum checksum = new CRC16Generic(
                 crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
+                (int) crcModel.getPoly(),
+                (int) crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
-                crcModel.getXorOut());
+                (int) crcModel.getXorOut());
         checksum.reset();
         checksum.update(testInput, 0, testInput.length);
         long value = checksum.getValue();
@@ -39,13 +36,13 @@ public class CRC64GenericTest {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC64Generic(
+        Checksum checksum = new CRC16Generic(
                 crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
+                (int) crcModel.getPoly(),
+                (int) crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
-                crcModel.getXorOut());
+                (int) crcModel.getXorOut());
         checksum.reset();
         for (byte inputByte : testInput) {
             checksum.update(inputByte);
@@ -56,106 +53,28 @@ public class CRC64GenericTest {
 
     @Test
     public void testResidue() {
-        Checksum checksum = new CRC64Generic(
+        Checksum checksum = new CRC16Generic(
                 crcModel.getWidth(),
-                crcModel.getPoly(),
+                (int) crcModel.getPoly(),
                 0,
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 0);
 
-        long input = crcModel.getXorOut();
+        short input = (short) crcModel.getXorOut();
         if (crcModel.getRefOut()) {
             //TODO: hack, fixes issue with CRC-5/USB
-            input = Long.reverse(input) >>> 64 - roundToByte(crcModel.getWidth());
+            input = (short) (Util.reverseShort(input) >>> 16 - Util.roundToByte(crcModel.getWidth()));
         }
-        byte[] newByte = longToBytes(input);
-        int len = roundToByte(crcModel.getWidth()) / 8;
-        checksum.update(newByte, 8 - len, len);
+        byte[] newByte = Util.shortToBytes(input);
+        int len = Util.roundToByte(crcModel.getWidth()) / 8;
+        checksum.update(newByte, 2 - len, len);
         long residue = checksum.getValue();
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
     }
 
-    @Test
-    public void testCRCValueSelfTest() {
-        assertTrue(CRCModelSelfTest.validateCRCValue(crcModel));
-    }
-
-    @Test
-    public void testResidueSelfTest() {
-        assertTrue(CRCModelSelfTest.validateCRCResidue(crcModel));
-    }
-
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
-        //CRC-64
-        CRCModel crc64 = new CRCModel("CRC-64", 64, 0x42F0E1EBA9EA3693L, 0,
-                false, false, 0, 0x6c40df5f0b497347L, 0);
-        CRCModel crc64goiso = new CRCModel("CRC-64/GO-ISO", 64, 0x000000000000001bL, 0xFFFFFFFFFFFFFFFFL,
-                true, true, 0xFFFFFFFFFFFFFFFFL, 0xb90956c775a41001L, 0x5300000000000000L);
-        CRCModel crc64we = new CRCModel("CRC-64/WE", 64, 0x42F0E1EBA9EA3693L, 0xFFFFFFFFFFFFFFFFL,
-                false, false, 0xFFFFFFFFFFFFFFFFL, 0x62ec59e3f1a4f00aL, 0xfcacbebd5931a992L);
-        CRCModel crc64xz = new CRCModel("CRC-64/XZ", 64, 0x42F0E1EBA9EA3693L, 0xFFFFFFFFFFFFFFFFL,
-                true, true, 0xFFFFFFFFFFFFFFFFL, 0x995dc9bbdf1939faL, 0x49958c9abd7d353fL);
-
-        //CRC-40/GSM
-        CRCModel crc40GSM = new CRCModel("CRC-40/GSM", 40, 0x0004820009L, 0,
-                false, false, 0xFFFFFFFFFFL, 0xD4164FC646L, 0xC4FF8071FFL);
-
-        //CRC-32
-        CRCModel crc32 = new CRCModel("CRC-32", 32, 0x04C11DB7L, 0xFFFFFFFFL,
-                true, true, 0xFFFFFFFFL, 0xcbf43926L, 0xdebb20e3L);
-        CRCModel crc32autosar = new CRCModel("CRC-32/AUTOSAR", 32, 0xf4acfb13, 0xFFFFFFFFL,
-                true, true, 0xFFFFFFFFL, 0x1697d06aL, 0x904cddbfL);
-        CRCModel crc32bzip2 = new CRCModel("CRC-32/BZIP2", 32, 0x04C11DB7L, 0xFFFFFFFFL,
-                false, false, 0xFFFFFFFFL, 0xfc891918L, 0xc704dd7bL);
-        CRCModel crc32c = new CRCModel("CRC-32C", 32, 0x1EDC6F41L, 0xFFFFFFFFL,
-                true, true, 0xFFFFFFFFL, 0xE3069283L, 0xB798B438L);
-        CRCModel crc32d = new CRCModel("CRC-32D", 32, 0xA833982BL, 0xFFFFFFFFL,
-                true, true, 0xFFFFFFFFL, 0x87315576L, 0x45270551L);
-        CRCModel crc32mpeg2 = new CRCModel("CRC-32/MPEG-2", 32, 0x04C11DB7L, 0xFFFFFFFFL,
-                false, false, 0, 0x0376E6E7L, 0);
-        CRCModel crc32posix = new CRCModel("CRC-32/POSIX", 32, 0x04C11DB7L, 0,
-                false, false, 0xFFFFFFFFL, 0x765E7680L, 0xC704DD7BL);
-        CRCModel crc32q = new CRCModel("CRC-32Q", 32, 0x814141ABL, 0,
-                false, false, 0, 0x3010BF7FL, 0);
-        CRCModel jamcrc = new CRCModel("JAMCRC", 32, 0x04C11DB7L, 0xFFFFFFFFL,
-                true, true, 0, 0x340BC6D9L, 0);
-        CRCModel xfer = new CRCModel("XFER", 32, 0x000000AFL, 0,
-                false, false, 0, 0xBD0BE338L, 0);
-
-        //CRC-31
-        CRCModel crc31philips = new CRCModel("CRC-31/PHILIPS", 31, 0x04C11DB7L, 0x7FFFFFFFL,
-                false, false, 0x7FFFFFFFL, 0x0CE9E46CL, 0x4EAF26F1L);
-
-        //CRC-30
-        CRCModel crc30cdma = new CRCModel("CRC-30/CDMA", 30, 0x2030B9C7L, 0x3FFFFFFFL,
-                false, false, 0x3FFFFFFFL, 0x04C34ABFL, 0X34EFA55AL);
-
-        //CRC-24
-        CRCModel crc24 = new CRCModel("CRC-24", 24, 0x864CFBL, 0xB704CEL,
-                false, false, 0, 0x21CF02L, 0);
-        CRCModel crc24ble = new CRCModel("CRC-24/BLE", 24, 0x00065BL, 0x555555L,
-                true, true, 0, 0xC25A56L, 0);
-        CRCModel crc24flexyayA = new CRCModel("CRC-24/FLEXRAY-A", 24, 0x5D6DCBL, 0xFEDCBAL,
-                false, false, 0, 0x7979BDL, 0);
-        CRCModel crc24flexyayB = new CRCModel("CRC-24/FLEXRAY-B", 24, 0x5D6DCBL, 0xABCDEFL,
-                false, false, 0, 0x1F23B8L, 0);
-        CRCModel crc24interlaken = new CRCModel("CRC-24/INTERLAKEN", 24, 0x328B63L, 0xFFFFFFL,
-                false, false, 0xFFFFFFL, 0xB4F3E6L, 0x144E63L);
-        CRCModel crc24lteA = new CRCModel("CRC-24/LTE-A", 24, 0x864CFBL, 0,
-                false, false, 0, 0xCDE703L, 0);
-        CRCModel crc24lteB = new CRCModel("CRC-24/LTE-B", 24, 0x800063L, 0,
-                false, false, 0, 0x23EF52L, 0);
-
-        //CRC-21
-        CRCModel crc21canfd = new CRCModel("CRC-21/CAN-FD", 21, 0x102899L, 0,
-                false, false, 0, 0x0ED841L, 0);
-
-        //CRC-17
-        CRCModel crc17canfd = new CRCModel("CRC-17/CAN-FD", 17, 0x1685BL, 0,
-                false, false, 0, 0x04F03L, 0);
-
         //CRC-16
         CRCModel crc16 = new CRCModel("CRC-16", 16, 0x8005, 0,
                 true, true, 0, 0xBB3D, 0);
@@ -334,14 +253,7 @@ public class CRC64GenericTest {
                 true, true, 0, 0x6, 0);
 
 
-        return Arrays.asList(crc64, crc64goiso, crc64we, crc64xz,
-                crc40GSM,
-                crc32, crc32autosar, crc32bzip2, crc32c, crc32d, crc32mpeg2, crc32posix, crc32q, jamcrc, xfer,
-                crc31philips,
-                crc30cdma,
-                crc24, crc24ble, crc24flexyayA, crc24flexyayB, crc24interlaken, crc24lteA, crc24lteB,
-                crc21canfd,
-                crc17canfd,
+        return Arrays.asList(
                 crc16, crc16augccitt, crc16buypass, ccittfalse, crc16cdma2000, crc16cms, crc16dds110, crc16dectr,
                 crc16dectx, crc16dnp, crc16en13757, crc16genibus, crc16gsm, crc16lj1200, crc16maxim, crc16mrcf4xx,
                 crc16opensafetya, crc16opensafetyb, crc16profibus, crc16riello, crc16t10dif, crc16teledisk,

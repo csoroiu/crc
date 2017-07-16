@@ -9,20 +9,20 @@ import java.util.zip.Checksum;
  */
 
 /**
- * Byte-wise CRC implementation that can compute CRC with width <= 64 using different models.
+ * Byte-wise CRC implementation that can compute CRC with width <= 32 using different models.
  */
-public class CRC64Generic implements Checksum {
+public class CRC32Generic implements Checksum {
 
-    final private long lookupTable[] = new long[0x100];
+    final private int lookupTable[] = new int[0x100];
     final private int width;
-    final private long poly;
-    final private long init;
+    final private int poly;
+    final private int init;
     final private boolean refIn; // reflect input data bytes
     final private boolean refOut; // resulted sum needs to be reversed before xor
-    final private long xorOut;
-    private long crc;
+    final private int xorOut;
+    private int crc;
 
-    public CRC64Generic(int width, long poly, long init, boolean refIn, boolean refOut, long xorOut) {
+    public CRC32Generic(int width, int poly, int init, boolean refIn, boolean refOut, int xorOut) {
         this.width = width;
         this.poly = poly;
         this.init = init;
@@ -38,14 +38,14 @@ public class CRC64Generic implements Checksum {
     }
 
     private void initLookupTableReflected() {
-        long poly = Long.reverse(this.poly << 64 - width);
+        int poly = Integer.reverse(this.poly << 32 - width);
         for (int i = 0; i < 0x100; i++) {
-            long v = i;
+            int v = i;
             for (int j = 0; j < 8; j++) {
                 if ((v & 1) == 1) {
                     v = (v >>> 1) ^ poly;
                 } else {
-                    v = (v >>> 1);
+                    v = v >>> 1;
                 }
             }
             lookupTable[i] = v;
@@ -53,9 +53,9 @@ public class CRC64Generic implements Checksum {
     }
 
     private void initLookupTableUnreflected() {
-        long poly = this.poly << 64 - width;
+        int poly = this.poly << 32 - width;
         for (int i = 0; i < 0x100; i++) {
-            long v = ((long) i) << 56;
+            int v = i << 24;
             for (int j = 0; j < 8; j++) {
                 if ((v & 0x8000000000000000L) != 0) {
                     v = (v << 1) ^ poly;
@@ -69,17 +69,17 @@ public class CRC64Generic implements Checksum {
 
     public void reset() {
         if (refIn) {
-            crc = Long.reverse(init << 64 - width);
+            crc = Integer.reverse(init << 32 - width);
         } else {
-            crc = init << 64 - width;
+            crc = init << 32 - width;
         }
     }
 
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[(int) ((crc ^ b) & 0xff)];
+            crc = (crc >>> 8) ^ lookupTable[(crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[(int) (((crc >>> 56) ^ b) & 0xff)];
+            crc = (crc << 8) ^ lookupTable[((crc >>> 24) ^ b) & 0xff];
         }
     }
 
@@ -98,32 +98,32 @@ public class CRC64Generic implements Checksum {
     private void updateReflected(byte[] src, int offset, int len) {
         for (int i = offset; i < offset + len; i++) {
             int value = src[i];
-            crc = (crc >>> 8) ^ lookupTable[(int) ((crc ^ value) & 0xff)];
+            crc = (crc >>> 8) ^ lookupTable[(crc ^ value) & 0xff];
         }
     }
 
     private void updateUnreflected(byte[] src, int offset, int len) {
         for (int i = offset; i < offset + len; i++) {
             int value = src[i];
-            crc = (crc << 8) ^ lookupTable[(int) (((crc >>> 56) ^ value) & 0xff)];
+            crc = (crc << 8) ^ lookupTable[((crc >>> 24) ^ value) & 0xff];
         }
     }
 
     public long getValue() {
         long xorOut = this.xorOut;
         if (!refOut) {
-            xorOut <<= 64 - width;
+            xorOut <<= 32 - width;
         }
 
         long result;
         if (refOut == refIn) {
-            result = crc ^ xorOut;
+            result = (crc ^ xorOut) & 0xFFFFFFFFL;
         } else {
-            result = Long.reverse(crc) ^ xorOut;
+            result = (Integer.reverse(crc) ^ xorOut) & 0xFFFFFFFFL;
         }
 
         if (!refOut) {
-            result >>>= 64 - width;
+            result >>>= 32 - width;
         }
         return result;
     }

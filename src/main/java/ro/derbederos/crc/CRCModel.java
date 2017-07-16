@@ -1,21 +1,24 @@
 package ro.derbederos.crc;
 
-public class CRCParameters {
+/**
+ * Ross Williams compatible CRC definition model.
+ */
+public final class CRCModel {
     private final String name;
     private final int width;
     private final long poly;
-    private final long initialValue;
+    private final long init;
     private final boolean refIn;
     private final boolean refOut;
     private final long xorOut;
     private final long check;
     private final long residue;
 
-    public CRCParameters(String name, int width, long poly, long initialValue, boolean refIn, boolean refOut, long xorOut, long check, long residue) {
+    public CRCModel(String name, int width, long poly, long init, boolean refIn, boolean refOut, long xorOut, long check, long residue) {
         this.name = name;
         this.width = width;
         this.poly = poly;
-        this.initialValue = initialValue;
+        this.init = init;
         this.refIn = refIn;
         this.refOut = refOut;
         this.xorOut = xorOut;
@@ -35,8 +38,8 @@ public class CRCParameters {
         return poly;
     }
 
-    public long getInitialValue() {
-        return initialValue;
+    public long getInit() {
+        return init;
     }
 
     public boolean getRefIn() {
