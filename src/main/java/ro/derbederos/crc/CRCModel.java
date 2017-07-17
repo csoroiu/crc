@@ -64,8 +64,16 @@ public final class CRCModel {
 
     @Override
     public String toString() {
-        return "CRCParameters{" +
+        return "CRCModel{" +
                 "name='" + name + '\'' +
+                ", width=" + width +
+                ", poly=" + "0x" + Long.toHexString(poly) +
+                ", init=" + "0x" + Long.toHexString(init) +
+                ", refIn=" + refIn +
+                ", refOut=" + refOut +
+                ", xorOut=" + "0x" + Long.toHexString(xorOut) +
+                ", check=" + "0x" + Long.toHexString(check) +
+                ", residue=" + "0x" + Long.toHexString(residue) +
                 '}';
     }
 }

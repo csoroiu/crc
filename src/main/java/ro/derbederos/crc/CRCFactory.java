@@ -5,17 +5,19 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.Checksum;
 
 public class CRCFactory {
 
-    private static Map<String, CRCModel> models = new HashMap<>();
+    private static Map<String, CRCModel> models = new LinkedHashMap<>();
+    private static final CRCModel CRC32;
 
     static {
         loadModels();
+        CRC32 = getModel("CRC-32");
     }
 
     private static void loadModels() {
@@ -25,9 +27,9 @@ public class CRCFactory {
         }
         try (LineNumberReader reader = new LineNumberReader(new InputStreamReader(crcModelsUrl.openStream()))) {
             String line;
-            Map<String, CRCModel> models = new HashMap<>();
+            Map<String, CRCModel> models = new LinkedHashMap<>();
             while ((line = reader.readLine()) != null) {
-                CRCModel model = parseLine(line);
+                CRCModel model = parseLine(reader.getLineNumber(), line);
                 if (model != null) {
                     models.put(model.getName(), model);
                 }
@@ -39,10 +41,10 @@ public class CRCFactory {
         }
     }
 
-    private static CRCModel parseLine(String line) {
+    private static CRCModel parseLine(int lineNumber, String line) {
         try {
             Properties p = new Properties();
-            p.load(new StringReader(line.trim().replaceAll(" {2}", "\n")));
+            p.load(new StringReader(line.trim().replaceAll(" +", "\n")));
             int width = Integer.parseInt(p.getProperty("width"), 10);
             long poly = parseLong(p.getProperty("poly"));
             long init = parseLong(p.getProperty("init"));
@@ -51,13 +53,21 @@ public class CRCFactory {
             long xorOut = parseLong(p.getProperty("xorout"));
             long check = parseLong(p.getProperty("check"));
             long residue = parseLong(p.getProperty("residue"));
-            String name = p.getProperty("name");
+            String name = unQuote(p.getProperty("name"));
             return new CRCModel(name, width, poly, init, refIn, refOut, xorOut, check, residue);
         } catch (NumberFormatException ex) {
-            System.err.println("CRCFactory: Failed to parse model " + line);
+            System.err.println("CRCFactory: Failed to parse model at line " + lineNumber + ":" + line);
         } catch (IOException ignore) {
         }
         return null;
+    }
+
+    private static String unQuote(String input) {
+        if (input.startsWith("\"") && input.endsWith("\"")) {
+            return input.substring(1, input.length() - 1);
+        } else {
+            return input;
+        }
     }
 
     private static long parseLong(String input) {
@@ -93,7 +103,7 @@ public class CRCFactory {
     public static Checksum getCRC(String modelName) {
         CRCModel crcModel = getModel(modelName);
         if (crcModel == null) {
-            throw new IllegalArgumentException("Undefined model " + modelName);
+            throw new IllegalArgumentException("CRCFactory: Undefined model " + modelName);
         }
         return getCRC(crcModel);
     }
@@ -105,15 +115,34 @@ public class CRCFactory {
      * @return
      */
     public static Checksum getCRC(CRCModel model) {
-        //FIXME
-        // if model <  16 => CRC16Generic
-        //if model == 16 => CRC16
-        //if model <  32 => CRC32Generic
-        //if model == 32,CRCParam = CRC-32 => zip.CRC32
-        //if model == 32 => CRC32
-        //if model <  64 => CRC64Generic
-        //if model == 64,refin == FALSE => CRC64Unreflected
-        //if model == 64,refin == TRUE  => CRC64Reflected
-        return null;
+//        if (model.getWidth() < 16) {
+//            return new CRC16Generic(model);
+//        } else if (model.getWidth() == 16) {
+//            return new CRC16(model);
+//        } else if (model.getWidth() < 32) {
+//            return new CRC32Generic(model);
+//        } else if (isAlias(CRC32, model)) {
+//            return new java.util.zip.CRC32();
+//        } else if (model.getWidth() == 32) {
+//            return new CRC32(model);
+//        } else if (model.getWidth() < 64) {
+//            return new CRC64Generic(model);
+//        } else if (model.getWidth() == 64) {
+//            if (model.getRefIn()) {
+//                return new CRC64Reflected(model);
+//            } else {
+//                return new CRC64Unreflected(model);
+//            }
+//        }
+        throw new IllegalArgumentException("CRCFactory: Cannot find a generator for model " + model.getName());
+    }
+
+    private static boolean isAlias(CRCModel reference, CRCModel input) {
+        return reference == input || (reference.getWidth() == input.getWidth() &&
+                reference.getPoly() == input.getPoly() &&
+                reference.getInit() == input.getInit() &&
+                reference.getRefIn() == input.getRefIn() &&
+                reference.getRefOut() == input.getRefOut() &&
+                reference.getXorOut() == reference.getXorOut());
     }
 }
