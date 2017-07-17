@@ -14,11 +14,11 @@ import java.util.zip.Checksum;
 public class CRC64 implements Checksum {
 
     final private long lookupTable[] = new long[0x100];
-    final private long poly;
-    final private long init;
-    final private boolean refIn; // reflect input data bytes
-    final private boolean refOut; // resulted sum needs to be reversed before xor
-    final private long xorOut;
+    final long poly;
+    final long init;
+    final boolean refIn; // reflect input data bytes
+    final boolean refOut; // resulted sum needs to be reversed before xor
+    final long xorOut;
     private long crc;
 
     public CRC64(long poly, long init, boolean refIn, boolean refOut, long xorOut) {

@@ -16,11 +16,11 @@ import static ro.derbederos.crc.Util.reverseShort;
 public class CRC16 implements Checksum {
 
     final private short lookupTable[] = new short[0x100];
-    final private short poly;
-    final private short init;
-    final private boolean refIn; // reflect input data bytes
-    final private boolean refOut; // resulted sum needs to be reversed before xor
-    final private short xorOut;
+    final short poly;
+    final short init;
+    final boolean refIn; // reflect input data bytes
+    final boolean refOut; // resulted sum needs to be reversed before xor
+    final short xorOut;
     private short crc;
 
     public CRC16(int poly, int init, boolean refIn, boolean refOut, int xorOut) {

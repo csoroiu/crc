@@ -50,11 +50,11 @@ public class CRC32Test {
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         CRCModel crc32 = new CRCModel("CRC-32", 32, 0x04C11DB7L, 0xFFFFFFFFL,
-                true, true, 0xFFFFFFFFL, 0xcbf43926L, 0xdebb20e3L);
-        CRCModel crc32autosar = new CRCModel("CRC-32/AUTOSAR", 32, 0xf4acfb13, 0xFFFFFFFFL,
-                true, true, 0xFFFFFFFFL, 0x1697d06aL, 0x904cddbfL);
+                true, true, 0xFFFFFFFFL, 0xCBF43926L, 0xdebb20e3L);
+        CRCModel crc32autosar = new CRCModel("CRC-32/AUTOSAR", 32, 0xF4ACFB13L, 0xFFFFFFFFL,
+                true, true, 0xFFFFFFFFL, 0x1697D06AL, 0x904CDDBFL);
         CRCModel crc32bzip2 = new CRCModel("CRC-32/BZIP2", 32, 0x04C11DB7L, 0xFFFFFFFFL,
-                false, false, 0xFFFFFFFFL, 0xfc891918L, 0xc704dd7bL);
+                false, false, 0xFFFFFFFFL, 0xFC891918L, 0xc704dd7bL);
         CRCModel crc32c = new CRCModel("CRC-32C", 32, 0x1EDC6F41L, 0xFFFFFFFFL,
                 true, true, 0xFFFFFFFFL, 0xE3069283L, 0xB798B438L);
         CRCModel crc32d = new CRCModel("CRC-32D", 32, 0xA833982BL, 0xFFFFFFFFL,
