@@ -8,6 +8,7 @@ import static ro.derbederos.crc.Util.reverseShort;
  * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  * http://reveng.sourceforge.net/crc-catalogue/
  * http://zlib.net/crc_v3.txt
+ * http://create.stephan-brumme.com/crc32/
  */
 
 /**

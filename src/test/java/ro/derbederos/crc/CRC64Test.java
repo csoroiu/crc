@@ -6,6 +6,7 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
@@ -51,14 +52,7 @@ public class CRC64Test {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
-        CRCModel crc64 = new CRCModel("CRC-64", 64, 0x42F0E1EBA9EA3693L, 0,
-                false, false, 0, 0x6c40df5f0b497347L, 0);
-        CRCModel crc64goiso = new CRCModel("CRC-64/GO-ISO", 64, 0x000000000000001bL, 0xFFFFFFFFFFFFFFFFL,
-                true, true, 0xFFFFFFFFFFFFFFFFL, 0xb90956c775a41001L, 0x5300000000000000L);
-        CRCModel crc64we = new CRCModel("CRC-64/WE", 64, 0x42F0E1EBA9EA3693L, 0xFFFFFFFFFFFFFFFFL,
-                false, false, 0xFFFFFFFFFFFFFFFFL, 0x62ec59e3f1a4f00aL, 0xfcacbebd5931a992L);
-        CRCModel crc64xz = new CRCModel("CRC-64/XZ", 64, 0x42F0E1EBA9EA3693L, 0xFFFFFFFFFFFFFFFFL,
-                true, true, 0xFFFFFFFFFFFFFFFFL, 0x995dc9bbdf1939faL, 0x49958c9abd7d353fL);
-        return Arrays.asList(crc64, crc64goiso, crc64we, crc64xz);
+        return Arrays.stream(CRCFactory.getDefinedModels())
+                .filter(crcModel -> crcModel.getWidth() == 64).collect(Collectors.toList());
     }
 }
