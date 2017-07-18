@@ -9,6 +9,7 @@ import static ro.derbederos.crc.Util.reverseShort;
  * http://reveng.sourceforge.net/crc-catalogue/
  * http://zlib.net/crc_v3.txt
  * http://create.stephan-brumme.com/crc32/
+ * https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation
  */
 
 /**
@@ -31,11 +32,46 @@ public class CRC16 implements Checksum {
         this.refOut = refOut;
         this.xorOut = (short) xorOut;
         if (refIn) {
-            lookupTable = initLookupTableReflected(reverseShort(poly));
+            lookupTable = fastInitLookupTableReflected(reverseShort(poly));
         } else {
-            lookupTable = initLookupTableUnreflected(poly);
+            lookupTable = fastInitLookupTableUnreflected((short) poly);
         }
         reset();
+    }
+
+    protected static short[] fastInitLookupTableReflected(short poly) {
+        short lookupTable[] = new short[0x100];
+        lookupTable[0] = 0;
+        lookupTable[0x80] = poly;
+        int v = poly & 0xFFFF;
+        for (int i = 64; i != 0; i /= 2) {
+            v = (v >> 1) ^ (poly & ~((v & 1) - 1));
+            v = v & 0xFFFF;
+            lookupTable[i] = (short) (v);
+        }
+        for (int i = 2; i < 256; i *= 2) {
+            for (int j = 1; j < i; j++) {
+                lookupTable[i + j] = (short) (lookupTable[i] ^ lookupTable[j]);
+            }
+        }
+        return lookupTable;
+    }
+
+    protected static short[] fastInitLookupTableUnreflected(short poly) {
+        short lookupTable[] = new short[0x100];
+        lookupTable[0] = 0;
+        lookupTable[1] = poly;
+        short v = poly;
+        for (int i = 2; i <= 128; i *= 2) {
+            v = (short) ((v << 1) ^ (poly & ~(((v & Integer.MIN_VALUE) >>> 31) - 1)));
+            lookupTable[i] = v;
+        }
+        for (int i = 2; i < 256; i *= 2) {
+            for (int j = 1; j < i; j++) {
+                lookupTable[i + j] = (short) (lookupTable[i] ^ lookupTable[j]);
+            }
+        }
+        return lookupTable;
     }
 
     protected static short[] initLookupTableReflected(short poly) {
@@ -54,12 +90,12 @@ public class CRC16 implements Checksum {
         return lookupTable;
     }
 
-    protected static short[] initLookupTableUnreflected(int poly) {
+    protected static short[] initLookupTableUnreflected(short poly) {
         short lookupTable[] = new short[0x100];
         for (int i = 0; i < 0x100; i++) {
             short v = (short) (i << 8);
             for (int j = 0; j < 8; j++) {
-                if ((v & 0x8000000000000000L) != 0) {
+                if ((v & Short.MIN_VALUE) != 0) {
                     v = (short) ((v << 1) ^ poly);
                 } else {
                     v = (short) (v << 1);
