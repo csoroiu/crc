@@ -22,7 +22,8 @@ public class CRC32Test {
 
     @Test
     public void testCRCValue() {
-        Checksum checksum = new CRC32((int) crcModel.getPoly(),
+        Checksum checksum = new CRC32(
+                (int) crcModel.getPoly(),
                 (int) crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
@@ -35,7 +36,8 @@ public class CRC32Test {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC32((int) crcModel.getPoly(),
+        Checksum checksum = new CRC32(
+                (int) crcModel.getPoly(),
                 (int) crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
@@ -51,6 +53,7 @@ public class CRC32Test {
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() == 32).collect(Collectors.toList());
+                .filter(crcModel -> crcModel.getWidth() == 32)
+                .collect(Collectors.toList());
     }
 }

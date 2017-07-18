@@ -77,6 +77,7 @@ public class CRC16GenericTest {
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() <= 16).collect(Collectors.toList());
+                .filter(crcModel -> crcModel.getWidth() <= 16)
+                .collect(Collectors.toList());
     }
 }

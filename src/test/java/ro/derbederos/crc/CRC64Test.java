@@ -53,6 +53,7 @@ public class CRC64Test {
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() == 64).collect(Collectors.toList());
+                .filter(crcModel -> crcModel.getWidth() == 64)
+                .collect(Collectors.toList());
     }
 }

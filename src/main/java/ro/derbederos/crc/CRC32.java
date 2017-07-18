@@ -14,7 +14,7 @@ import java.util.zip.Checksum;
  */
 public class CRC32 implements Checksum {
 
-    final private int lookupTable[] = new int[0x100];
+    private final int lookupTable[];
     final int poly;
     final int init;
     final boolean refIn; // reflect input data bytes
@@ -29,30 +29,31 @@ public class CRC32 implements Checksum {
         this.refOut = refOut;
         this.xorOut = xorOut;
         if (refIn) {
-            initLookupTableReflected();
+            lookupTable = initLookupTableReflected(Integer.reverse(poly));
         } else {
-            initLookupTableUnreflected();
+            lookupTable = initLookupTableUnreflected(poly);
         }
         reset();
     }
 
-    private void initLookupTableReflected() {
-        int poly = Integer.reverse(this.poly);
+    protected static int[] initLookupTableReflected(int poly) {
+        int lookupTable[] = new int[0x100];
         for (int i = 0; i < 0x100; i++) {
             int v = i;
             for (int j = 0; j < 8; j++) {
                 if ((v & 1) == 1) {
                     v = (v >>> 1) ^ poly;
                 } else {
-                    v = v >>> 1;
+                    v = (v >>> 1);
                 }
             }
             lookupTable[i] = v;
         }
+        return lookupTable;
     }
 
-    private void initLookupTableUnreflected() {
-        int poly = this.poly;
+    protected static int[] initLookupTableUnreflected(int poly) {
+        int lookupTable[] = new int[0x100];
         for (int i = 0; i < 0x100; i++) {
             int v = i << 24;
             for (int j = 0; j < 8; j++) {
@@ -64,6 +65,7 @@ public class CRC32 implements Checksum {
             }
             lookupTable[i] = v;
         }
+        return lookupTable;
     }
 
     public void reset() {

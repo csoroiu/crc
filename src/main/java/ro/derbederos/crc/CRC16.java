@@ -16,7 +16,7 @@ import static ro.derbederos.crc.Util.reverseShort;
  */
 public class CRC16 implements Checksum {
 
-    final private short lookupTable[] = new short[0x100];
+    private final short lookupTable[];
     final short poly;
     final short init;
     final boolean refIn; // reflect input data bytes
@@ -31,15 +31,15 @@ public class CRC16 implements Checksum {
         this.refOut = refOut;
         this.xorOut = (short) xorOut;
         if (refIn) {
-            initLookupTableReflected();
+            lookupTable = initLookupTableReflected(reverseShort(poly));
         } else {
-            initLookupTableUnreflected();
+            lookupTable = initLookupTableUnreflected(poly);
         }
         reset();
     }
 
-    private void initLookupTableReflected() {
-        short poly = reverseShort(this.poly);
+    protected static short[] initLookupTableReflected(short poly) {
+        short lookupTable[] = new short[0x100];
         for (int i = 0; i < 0x100; i++) {
             short v = (short) i;
             for (int j = 0; j < 8; j++) {
@@ -51,10 +51,11 @@ public class CRC16 implements Checksum {
             }
             lookupTable[i] = v;
         }
+        return lookupTable;
     }
 
-    private void initLookupTableUnreflected() {
-        short poly = this.poly;
+    protected static short[] initLookupTableUnreflected(int poly) {
+        short lookupTable[] = new short[0x100];
         for (int i = 0; i < 0x100; i++) {
             short v = (short) (i << 8);
             for (int j = 0; j < 8; j++) {
@@ -66,6 +67,7 @@ public class CRC16 implements Checksum {
             }
             lookupTable[i] = v;
         }
+        return lookupTable;
     }
 
     public void reset() {

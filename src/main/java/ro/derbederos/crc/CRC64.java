@@ -14,7 +14,7 @@ import java.util.zip.Checksum;
  */
 public class CRC64 implements Checksum {
 
-    final private long lookupTable[] = new long[0x100];
+    private final long lookupTable[];
     final long poly;
     final long init;
     final boolean refIn; // reflect input data bytes
@@ -29,15 +29,15 @@ public class CRC64 implements Checksum {
         this.refOut = refOut;
         this.xorOut = xorOut;
         if (refIn) {
-            initLookupTableReflected();
+            lookupTable = initLookupTableReflected(Long.reverse(poly));
         } else {
-            initLookupTableUnreflected();
+            lookupTable = initLookupTableUnreflected(poly);
         }
         reset();
     }
 
-    private void initLookupTableReflected() {
-        long poly = Long.reverse(this.poly);
+    protected static long[] initLookupTableReflected(long poly) {
+        long lookupTable[] = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
             long v = i;
             for (int j = 0; j < 8; j++) {
@@ -49,10 +49,11 @@ public class CRC64 implements Checksum {
             }
             lookupTable[i] = v;
         }
+        return lookupTable;
     }
 
-    private void initLookupTableUnreflected() {
-        long poly = this.poly;
+    protected static long[] initLookupTableUnreflected(long poly) {
+        long lookupTable[] = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
             long v = ((long) i) << 56;
             for (int j = 0; j < 8; j++) {
@@ -64,6 +65,7 @@ public class CRC64 implements Checksum {
             }
             lookupTable[i] = v;
         }
+        return lookupTable;
     }
 
     public void reset() {

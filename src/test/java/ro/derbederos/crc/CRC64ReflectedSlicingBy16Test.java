@@ -6,28 +6,26 @@ import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-public class CRC16Test {
+public class CRC64ReflectedSlicingBy16Test {
     private static final byte[] testInput = "123456789".getBytes();
     private CRCModel crcModel;
 
-    public CRC16Test(CRCModel crcModel) {
+    public CRC64ReflectedSlicingBy16Test(CRCModel crcModel) {
         this.crcModel = crcModel;
     }
 
     @Test
     public void testCRCValue() {
-        Checksum checksum = new CRC16(
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
-                crcModel.getRefIn(),
+        Checksum checksum = new CRC64ReflectedSlicingBy16(
+                crcModel.getPoly(),
+                crcModel.getInit(),
                 crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
+                crcModel.getXorOut());
         checksum.reset();
         checksum.update(testInput, 0, testInput.length);
         long value = checksum.getValue();
@@ -36,12 +34,11 @@ public class CRC16Test {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC16(
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
-                crcModel.getRefIn(),
+        Checksum checksum = new CRC64ReflectedSlicingBy16(
+                crcModel.getPoly(),
+                crcModel.getInit(),
                 crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
+                crcModel.getXorOut());
         checksum.reset();
         for (byte inputByte : testInput) {
             checksum.update(inputByte);
@@ -52,8 +49,10 @@ public class CRC16Test {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
-        return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() == 16)
-                .collect(Collectors.toList());
+        CRCModel crc64goiso = new CRCModel("CRC-64/GO-ISO", 64, 0x000000000000001bL, 0xFFFFFFFFFFFFFFFFL,
+                true, true, 0xFFFFFFFFFFFFFFFFL, 0xb90956c775a41001L, 0x5300000000000000L);
+        CRCModel crc64xz = new CRCModel("CRC-64/XZ", 64, 0x42F0E1EBA9EA3693L, 0xFFFFFFFFFFFFFFFFL,
+                true, true, 0xFFFFFFFFFFFFFFFFL, 0x995dc9bbdf1939faL, 0x49958c9abd7d353fL);
+        return Arrays.asList(crc64goiso, crc64xz);
     }
 }
