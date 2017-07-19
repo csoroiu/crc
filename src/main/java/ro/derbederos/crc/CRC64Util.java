@@ -3,7 +3,7 @@ package ro.derbederos.crc;
 final class CRC64Util {
     static long[] fastInitLookupTableReflected(long poly) {
         long reflectedPoly = Long.reverse(poly);
-        long lookupTable[] = new long[0x100];
+        long[] lookupTable = new long[0x100];
         lookupTable[0] = 0;
         lookupTable[0x80] = reflectedPoly;
         long v = reflectedPoly;
@@ -20,7 +20,7 @@ final class CRC64Util {
     }
 
     static long[] fastInitLookupTableUnreflected(long poly) {
-        long lookupTable[] = new long[0x100];
+        long[] lookupTable = new long[0x100];
         lookupTable[0] = 0;
         lookupTable[1] = poly;
         long v = poly;
@@ -38,7 +38,7 @@ final class CRC64Util {
 
     static long[] initLookupTableReflected(long poly) {
         long reflectedPoly = Long.reverse(poly);
-        long lookupTable[] = new long[0x100];
+        long[] lookupTable = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
             long v = i;
             for (int j = 0; j < 8; j++) {
@@ -54,7 +54,7 @@ final class CRC64Util {
     }
 
     static long[] initLookupTableUnreflected(long poly) {
-        long lookupTable[] = new long[0x100];
+        long[] lookupTable = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
             long v = ((long) i) << 56;
             for (int j = 0; j < 8; j++) {
@@ -74,8 +74,21 @@ final class CRC64Util {
         lookupTable[0] = CRC64Util.fastInitLookupTableReflected(poly);
         for (int n = 0; n < 256; n++) {
             long v = lookupTable[0][n];
-            for (int k = 1; k < 8; k++) {
+            for (int k = 1; k < dimension; k++) {
                 v = lookupTable[0][(int) (v & 0xff)] ^ (v >>> 8);
+                lookupTable[k][n] = v;
+            }
+        }
+        return lookupTable;
+    }
+
+    static long[][] initLookupTablesUnreflected(long poly, int dimension) {
+        long[][] lookupTable = new long[dimension][0x100];
+        lookupTable[0] = CRC64Util.fastInitLookupTableUnreflected(poly);
+        for (int n = 0; n < 256; n++) {
+            long v = lookupTable[0][n];
+            for (int k = 1; k < dimension; k++) {
+                v = lookupTable[0][(int) ((v >>> 56) & 0xff)] ^ (v << 8);
                 lookupTable[k][n] = v;
             }
         }

@@ -17,7 +17,7 @@ import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
  */
 public class CRC64ReflectedSlicingBy8 implements Checksum {
 
-    private final long lookupTable[][];
+    private final long[][] lookupTable;
     final long poly;
     final long init;
     final boolean refOut; // resulted sum needs to be reversed before xor
@@ -41,11 +41,11 @@ public class CRC64ReflectedSlicingBy8 implements Checksum {
         crc = (crc >>> 8) ^ lookupTable[0][(int) ((crc ^ b) & 0xff)];
     }
 
-    public void update(byte src[]) {
+    public void update(byte[] src) {
         update(src, 0, src.length);
     }
 
-    public void update(byte src[], int offset, int len) {
+    public void update(byte[] src, int offset, int len) {
         updateReflected(src, offset, len);
     }
 

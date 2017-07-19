@@ -2,7 +2,7 @@ package ro.derbederos.crc;
 
 import java.util.zip.Checksum;
 
-import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
+import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
 
 /*
  * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
@@ -13,9 +13,9 @@ import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
 
 /**
  * Byte-wise CRC implementation that can compute CRC-64 for little endian (reflected) byte input using different models.
- * It uses slicing-by-16 method (16 tables of 256 elements each).
+ * It uses slicing-by-8 method (8 tables of 256 elements each).
  */
-public class CRC64ReflectedSlicingBy16 implements Checksum {
+public class CRC64UnreflectedSlicingBy16 implements Checksum {
 
     private final long[][] lookupTable;
     final long poly;
@@ -24,21 +24,21 @@ public class CRC64ReflectedSlicingBy16 implements Checksum {
     final long xorOut;
     private long crc;
 
-    public CRC64ReflectedSlicingBy16(long poly, long init, boolean refOut, long xorOut) {
+    public CRC64UnreflectedSlicingBy16(long poly, long init, boolean refOut, long xorOut) {
         this.poly = poly;
         this.init = init;
         this.refOut = refOut;
         this.xorOut = xorOut;
-        lookupTable = initLookupTablesReflected(poly, 16);
+        lookupTable = initLookupTablesUnreflected(poly, 16);
         reset();
     }
 
     public void reset() {
-        crc = Long.reverse(init);
+        crc = init;
     }
 
     public void update(int b) {
-        crc = (crc >>> 8) ^ lookupTable[0][(int) ((crc ^ b) & 0xff)];
+        crc = (crc << 8) ^ lookupTable[0][(int) (((crc >>> 56) ^ b) & 0xff)];
     }
 
     public void update(byte[] src) {
@@ -46,21 +46,21 @@ public class CRC64ReflectedSlicingBy16 implements Checksum {
     }
 
     public void update(byte[] src, int offset, int len) {
-        updateReflected(src, offset, len);
+        updateUnreflected(src, offset, len);
     }
 
-    private void updateReflected(byte[] src, int offset, int len) {
+    private void updateUnreflected(byte[] src, int offset, int len) {
         long localCrc = this.crc;
         int index = offset;
         while (len > 15) {
-            localCrc = lookupTable[15][(int) ((localCrc ^ src[index++]) & 0xff)] ^
-                    lookupTable[14][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[13][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[12][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[11][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[10][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[9][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[8][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
+            localCrc = lookupTable[15][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
+                    lookupTable[14][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
+                    lookupTable[13][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
+                    lookupTable[12][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
+                    lookupTable[11][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
+                    lookupTable[10][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
+                    lookupTable[9][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
+                    lookupTable[8][(int) ((localCrc ^ src[index++]) & 0xff)] ^
                     lookupTable[7][src[index++] & 0xff] ^
                     lookupTable[6][src[index++] & 0xff] ^
                     lookupTable[5][src[index++] & 0xff] ^
@@ -72,14 +72,14 @@ public class CRC64ReflectedSlicingBy16 implements Checksum {
             len -= 16;
         }
         while (len > 0) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[0][(int) ((localCrc ^ src[index++]) & 0xff)];
+            localCrc = (localCrc << 8) ^ lookupTable[0][(int) (((localCrc >>> 56) ^ src[index++]) & 0xff)];
             len--;
         }
         this.crc = localCrc;
     }
 
     public long getValue() {
-        if (refOut) {
+        if (!refOut) {
             return crc ^ xorOut;
         } else {
             return Long.reverse(crc) ^ xorOut;

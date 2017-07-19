@@ -18,7 +18,7 @@ import static ro.derbederos.crc.CRC64Util.fastInitLookupTableUnreflected;
  */
 public class CRC64 implements Checksum {
 
-    private final long lookupTable[];
+    private final long[] lookupTable;
     final long poly;
     final long init;
     final boolean refIn; // reflect input data bytes
@@ -56,11 +56,11 @@ public class CRC64 implements Checksum {
         }
     }
 
-    public void update(byte src[]) {
+    public void update(byte[] src) {
         update(src, 0, src.length);
     }
 
-    public void update(byte src[], int offset, int len) {
+    public void update(byte[] src, int offset, int len) {
         if (refIn) {
             updateReflected(src, offset, len);
         } else {

@@ -3,7 +3,7 @@ package ro.derbederos.crc;
 final class CRC16Util {
     static short[] fastInitLookupTableReflected(short poly) {
         short reflectedPoly = reverseShort(poly);
-        short lookupTable[] = new short[0x100];
+        short[] lookupTable = new short[0x100];
         lookupTable[0] = 0;
         lookupTable[0x80] = reflectedPoly;
         int v = reflectedPoly & 0xFFFF;
@@ -21,7 +21,7 @@ final class CRC16Util {
     }
 
     static short[] fastInitLookupTableUnreflected(short poly) {
-        short lookupTable[] = new short[0x100];
+        short[] lookupTable = new short[0x100];
         lookupTable[0] = 0;
         lookupTable[1] = poly;
         short v = poly;
@@ -39,7 +39,7 @@ final class CRC16Util {
 
     static short[] initLookupTableReflected(short poly) {
         short reflectedPoly = reverseShort(poly);
-        short lookupTable[] = new short[0x100];
+        short[] lookupTable = new short[0x100];
         for (int i = 0; i < 0x100; i++) {
             short v = (short) i;
             for (int j = 0; j < 8; j++) {
@@ -55,7 +55,7 @@ final class CRC16Util {
     }
 
     static short[] initLookupTableUnreflected(short poly) {
-        short lookupTable[] = new short[0x100];
+        short[] lookupTable = new short[0x100];
         for (int i = 0; i < 0x100; i++) {
             short v = (short) (i << 8);
             for (int j = 0; j < 8; j++) {

@@ -12,18 +12,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 @RunWith(Parameterized.class)
-public class CRC64UnreflectedTest {
+public class CRC64UnreflectedSlicingBy8Test {
     private static final byte[] testInput = "123456789".getBytes();
     private CRCModel crcModel;
 
-    public CRC64UnreflectedTest(CRCModel crcModel) {
+    public CRC64UnreflectedSlicingBy8Test(CRCModel crcModel) {
         this.crcModel = crcModel;
     }
 
     @Test
     public void testCRCValue() {
         assertFalse(crcModel.getRefIn());
-        Checksum checksum = new CRC64Unreflected(
+        Checksum checksum = new CRC64UnreflectedSlicingBy8(
                 crcModel.getPoly(),
                 crcModel.getInit(),
                 crcModel.getRefOut(),
@@ -36,7 +36,7 @@ public class CRC64UnreflectedTest {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC64Unreflected(
+        Checksum checksum = new CRC64UnreflectedSlicingBy8(
                 crcModel.getPoly(),
                 crcModel.getInit(),
                 crcModel.getRefOut(),

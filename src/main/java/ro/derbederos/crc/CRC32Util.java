@@ -3,7 +3,7 @@ package ro.derbederos.crc;
 final class CRC32Util {
     static int[] fastInitLookupTableReflected(int poly) {
         int reflectedPoly = Integer.reverse(poly);
-        int lookupTable[] = new int[0x100];
+        int[] lookupTable = new int[0x100];
         lookupTable[0] = 0;
         lookupTable[0x80] = reflectedPoly;
         int v = reflectedPoly;
@@ -20,7 +20,7 @@ final class CRC32Util {
     }
 
     static int[] fastInitLookupTableUnreflected(int poly) {
-        int lookupTable[] = new int[0x100];
+        int[] lookupTable = new int[0x100];
         lookupTable[0] = 0;
         lookupTable[1] = poly;
         int v = poly;
@@ -38,7 +38,7 @@ final class CRC32Util {
 
     static int[] initLookupTableReflected(int poly) {
         int reflectedPoly = Integer.reverse(poly);
-        int lookupTable[] = new int[0x100];
+        int[] lookupTable = new int[0x100];
         for (int i = 0; i < 0x100; i++) {
             int v = i;
             for (int j = 0; j < 8; j++) {
@@ -54,7 +54,7 @@ final class CRC32Util {
     }
 
     static int[] initLookupTableUnreflected(int poly) {
-        int lookupTable[] = new int[0x100];
+        int[] lookupTable = new int[0x100];
         for (int i = 0; i < 0x100; i++) {
             int v = i << 24;
             for (int j = 0; j < 8; j++) {
@@ -74,7 +74,7 @@ final class CRC32Util {
         lookupTable[0] = fastInitLookupTableReflected(poly);
         for (int n = 0; n < 256; n++) {
             int v = lookupTable[0][n];
-            for (int k = 1; k < 8; k++) {
+            for (int k = 1; k < dimension; k++) {
                 v = lookupTable[0][v & 0xff] ^ (v >>> 8);
                 lookupTable[k][n] = v;
             }

@@ -19,7 +19,7 @@ import static ro.derbederos.crc.CRC16Util.reverseShort;
  */
 public class CRC16 implements Checksum {
 
-    private final short lookupTable[];
+    private final short[] lookupTable;
     final short poly;
     final short init;
     final boolean refIn; // reflect input data bytes
@@ -57,11 +57,11 @@ public class CRC16 implements Checksum {
         }
     }
 
-    public void update(byte src[]) {
+    public void update(byte[] src) {
         update(src, 0, src.length);
     }
 
-    public void update(byte src[], int offset, int len) {
+    public void update(byte[] src, int offset, int len) {
         if (refIn) {
             updateReflected(src, offset, len);
         } else {

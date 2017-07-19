@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class CRC64ReflectedSlicingBy16Test {
@@ -21,6 +22,7 @@ public class CRC64ReflectedSlicingBy16Test {
 
     @Test
     public void testCRCValue() {
+        assertTrue(crcModel.getRefIn());
         Checksum checksum = new CRC64ReflectedSlicingBy16(
                 crcModel.getPoly(),
                 crcModel.getInit(),
