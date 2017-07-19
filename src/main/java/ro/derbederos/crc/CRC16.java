@@ -63,24 +63,28 @@ public class CRC16 implements Checksum {
 
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
-            updateReflected(src, offset, len);
+            crc = updateReflected(lookupTable, crc, src, offset, len);
         } else {
-            updateUnreflected(src, offset, len);
+            crc = updateUnreflected(lookupTable, crc, src, offset, len);
         }
     }
 
-    private void updateReflected(byte[] src, int offset, int len) {
+    private static short updateReflected(short[] lookupTable, short crc, byte[] src, int offset, int len) {
+        short localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
             int value = src[i];
-            crc = (short) ((((int) crc & 0xFFFF) >>> 8) ^ lookupTable[((crc ^ value) & 0xff)]);
+            localCrc = (short) ((((int) localCrc & 0xFFFF) >>> 8) ^ lookupTable[((localCrc ^ value) & 0xff)]);
         }
+        return localCrc;
     }
 
-    private void updateUnreflected(byte[] src, int offset, int len) {
+    private static short updateUnreflected(short[] lookupTable, short crc, byte[] src, int offset, int len) {
+        short localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
             int value = src[i];
-            crc = (short) ((((int) crc & 0xFFFF) << 8) ^ lookupTable[((crc >>> 8) ^ value) & 0xff]);
+            localCrc = (short) ((((int) localCrc & 0xFFFF) << 8) ^ lookupTable[((localCrc >>> 8) ^ value) & 0xff]);
         }
+        return localCrc;
     }
 
     public long getValue() {

@@ -46,11 +46,11 @@ public class CRC64UnreflectedSlicingBy8 implements Checksum {
     }
 
     public void update(byte[] src, int offset, int len) {
-        updateUnreflected(src, offset, len);
+        crc = updateUnreflected(lookupTable, crc, src, offset, len);
     }
 
-    private void updateUnreflected(byte[] src, int offset, int len) {
-        long localCrc = this.crc;
+    private static long updateUnreflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
+        long localCrc = crc;
         int index = offset;
         while (len > 7) {
             localCrc = lookupTable[7][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
@@ -83,7 +83,7 @@ public class CRC64UnreflectedSlicingBy8 implements Checksum {
             case 1:
                 localCrc = (localCrc << 8) ^ lookupTable[0][(int) (((localCrc >>> 56) ^ src[index]) & 0xff)];
         }
-        this.crc = localCrc;
+        return localCrc;
     }
 
     public long getValue() {

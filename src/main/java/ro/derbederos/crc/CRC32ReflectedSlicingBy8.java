@@ -46,11 +46,11 @@ public class CRC32ReflectedSlicingBy8 implements Checksum {
     }
 
     public void update(byte[] src, int offset, int len) {
-        updateReflected(src, offset, len);
+        crc = updateReflected(lookupTable, crc, src, offset, len);
     }
 
-    private void updateReflected(byte[] src, int offset, int len) {
-        int localCrc = this.crc;
+    private static int updateReflected(int[][] lookupTable, int crc, byte[] src, int offset, int len) {
+        int localCrc = crc;
         int index = offset;
         while (len > 7) {
             localCrc = lookupTable[7][(localCrc ^ src[index++]) & 0xff] ^
@@ -82,7 +82,7 @@ public class CRC32ReflectedSlicingBy8 implements Checksum {
             case 1:
                 localCrc = (localCrc >>> 8) ^ lookupTable[0][(localCrc ^ src[index]) & 0xff];
         }
-        this.crc = localCrc;
+        return localCrc;
     }
 
     public long getValue() {
