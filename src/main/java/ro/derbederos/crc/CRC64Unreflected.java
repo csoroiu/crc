@@ -2,6 +2,8 @@ package ro.derbederos.crc;
 
 import java.util.zip.Checksum;
 
+import static ro.derbederos.crc.CRC64Util.fastInitLookupTableUnreflected;
+
 /*
  * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
  * http://reveng.sourceforge.net/crc-catalogue/
@@ -14,7 +16,7 @@ import java.util.zip.Checksum;
  */
 public class CRC64Unreflected implements Checksum {
 
-    private final long lookupTable[] = new long[0x100];
+    private final long lookupTable[];
     final long poly;
     final long init;
     final boolean refOut; // resulted sum needs to be reversed before xor
@@ -26,23 +28,8 @@ public class CRC64Unreflected implements Checksum {
         this.init = init;
         this.refOut = refOut;
         this.xorOut = xorOut;
-        initLookupTableUnreflected();
+        lookupTable = fastInitLookupTableUnreflected(poly);
         reset();
-    }
-
-    private void initLookupTableUnreflected() {
-        long poly = this.poly;
-        for (int i = 0; i < 0x100; i++) {
-            long v = ((long) i) << 56;
-            for (int j = 0; j < 8; j++) {
-                if ((v & 0x8000000000000000L) != 0) {
-                    v = (v << 1) ^ poly;
-                } else {
-                    v = (v << 1);
-                }
-            }
-            lookupTable[i] = v;
-        }
     }
 
     public void reset() {

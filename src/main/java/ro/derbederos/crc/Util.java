@@ -27,8 +27,4 @@ class Util {
         buffer.putShort(x);
         return buffer.array();
     }
-
-    static short reverseShort(int i) {
-        return (short) (Integer.reverse(i) >>> 16);
-    }
 }

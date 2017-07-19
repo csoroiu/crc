@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
+import static ro.derbederos.crc.Util.roundToByte;
 
 @RunWith(Parameterized.class)
 public class CRC16GenericTest {
@@ -65,10 +66,10 @@ public class CRC16GenericTest {
         short input = (short) crcModel.getXorOut();
         if (crcModel.getRefOut()) {
             //TODO: hack, fixes issue with CRC-5/USB
-            input = (short) (Util.reverseShort(input) >>> 16 - Util.roundToByte(crcModel.getWidth()));
+            input = (short) (Integer.reverse(input) >>> 32 - roundToByte(crcModel.getWidth()));
         }
         byte[] newByte = Util.shortToBytes(input);
-        int len = Util.roundToByte(crcModel.getWidth()) / 8;
+        int len = roundToByte(crcModel.getWidth()) / 8;
         checksum.update(newByte, 2 - len, len);
         long residue = checksum.getValue();
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
