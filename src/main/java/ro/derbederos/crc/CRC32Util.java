@@ -81,4 +81,17 @@ final class CRC32Util {
         }
         return lookupTable;
     }
+
+    static int[][] initLookupTablesUnreflected(int poly, int dimension) {
+        int[][] lookupTable = new int[dimension][0x100];
+        lookupTable[0] = fastInitLookupTableUnreflected(poly);
+        for (int n = 0; n < 256; n++) {
+            int v = lookupTable[0][n];
+            for (int k = 1; k < dimension; k++) {
+                v = lookupTable[0][(v >>> 24) & 0xff] ^ (v << 8);
+                lookupTable[k][n] = v;
+            }
+        }
+        return lookupTable;
+    }
 }

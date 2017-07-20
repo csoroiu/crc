@@ -15,6 +15,8 @@ import static ro.derbederos.crc.CRC32Util.fastInitLookupTableUnreflected;
 
 /**
  * Byte-wise CRC implementation that can compute CRC-32 using different models.
+ * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
+ * via Table Look-Up"
  */
 public class CRC32 implements Checksum {
 

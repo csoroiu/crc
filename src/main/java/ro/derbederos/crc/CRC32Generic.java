@@ -2,8 +2,9 @@ package ro.derbederos.crc;
 
 /**
  * Byte-wise CRC implementation that can compute CRC with width <= 32 using different models.
+ * It uses slicing-by-8 method (8 tables of 256 elements each).
  */
-public class CRC32Generic extends CRC32 {
+public class CRC32Generic extends CRC32SlicingBy8 {
     private final int width;
 
     public CRC32Generic(int width, int poly, int init, boolean refIn, boolean refOut, int xorOut) {

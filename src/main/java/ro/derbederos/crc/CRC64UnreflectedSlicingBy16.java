@@ -12,8 +12,8 @@ import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
  */
 
 /**
- * Byte-wise CRC implementation that can compute CRC-64 for little endian (reflected) byte input using different models.
- * It uses slicing-by-8 method (8 tables of 256 elements each).
+ * Byte-wise CRC implementation that can compute CRC-64 for big endian (unreflected) byte input using different models.
+ * It uses slicing-by-16 method (16 tables of 256 elements each).
  */
 public class CRC64UnreflectedSlicingBy16 implements Checksum {
 

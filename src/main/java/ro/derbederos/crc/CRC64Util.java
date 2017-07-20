@@ -71,7 +71,7 @@ final class CRC64Util {
 
     static long[][] initLookupTablesReflected(long poly, int dimension) {
         long[][] lookupTable = new long[dimension][0x100];
-        lookupTable[0] = CRC64Util.fastInitLookupTableReflected(poly);
+        lookupTable[0] = fastInitLookupTableReflected(poly);
         for (int n = 0; n < 256; n++) {
             long v = lookupTable[0][n];
             for (int k = 1; k < dimension; k++) {
@@ -84,7 +84,7 @@ final class CRC64Util {
 
     static long[][] initLookupTablesUnreflected(long poly, int dimension) {
         long[][] lookupTable = new long[dimension][0x100];
-        lookupTable[0] = CRC64Util.fastInitLookupTableUnreflected(poly);
+        lookupTable[0] = fastInitLookupTableUnreflected(poly);
         for (int n = 0; n < 256; n++) {
             long v = lookupTable[0][n];
             for (int k = 1; k < dimension; k++) {
