@@ -12,21 +12,22 @@ import java.util.zip.Checksum;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-public class CRC32ReflectedSlicingBy16Test {
+public class CRC64SlicingBy16Test {
     private static final byte[] testInput = "123456789".getBytes();
     private CRCModel crcModel;
 
-    public CRC32ReflectedSlicingBy16Test(CRCModel crcModel) {
+    public CRC64SlicingBy16Test(CRCModel crcModel) {
         this.crcModel = crcModel;
     }
 
     @Test
     public void testCRCValue() {
-        Checksum checksum = new CRC32ReflectedSlicingBy16(
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
+        Checksum checksum = new CRC64SlicingBy16(
+                crcModel.getPoly(),
+                crcModel.getInit(),
+                crcModel.getRefIn(),
                 crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
+                crcModel.getXorOut());
         checksum.reset();
         checksum.update(testInput, 0, testInput.length);
         long value = checksum.getValue();
@@ -35,11 +36,12 @@ public class CRC32ReflectedSlicingBy16Test {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC32ReflectedSlicingBy16(
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
+        Checksum checksum = new CRC64SlicingBy16(
+                crcModel.getPoly(),
+                crcModel.getInit(),
+                crcModel.getRefIn(),
                 crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
+                crcModel.getXorOut());
         checksum.reset();
         for (byte inputByte : testInput) {
             checksum.update(inputByte);
@@ -51,7 +53,7 @@ public class CRC32ReflectedSlicingBy16Test {
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() == 32 && crcModel.getRefIn())
+                .filter(crcModel -> crcModel.getWidth() == 64)
                 .collect(Collectors.toList());
     }
 }

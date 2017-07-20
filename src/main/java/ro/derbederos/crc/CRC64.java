@@ -5,16 +5,10 @@ import java.util.zip.Checksum;
 import static ro.derbederos.crc.CRC64Util.fastInitLookupTableReflected;
 import static ro.derbederos.crc.CRC64Util.fastInitLookupTableUnreflected;
 
-/*
- * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
- * http://reveng.sourceforge.net/crc-catalogue/
- * http://zlib.net/crc_v3.txt
- * http://create.stephan-brumme.com/crc32/
- * https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation
- */
-
 /**
  * Byte-wise CRC implementation that can compute CRC-64 using different models.
+ * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
+ * via Table Look-Up", 1988
  */
 public class CRC64 implements Checksum {
 

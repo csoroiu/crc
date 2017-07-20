@@ -5,16 +5,12 @@ import java.util.zip.Checksum;
 import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
 import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
 
-/*
- * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
- * http://reveng.sourceforge.net/crc-catalogue/
- * http://zlib.net/crc_v3.txt
- * http://create.stephan-brumme.com/crc32/
- */
-
 /**
  * Byte-wise CRC implementation that can compute CRC-64 using different models.
  * It uses slicing-by-8 method (8 tables of 256 elements each).
+ * We use the algorithm described by Michael E. Kounavis and Frank L. Berry in
+ * "A Systematic Approach to Building High Performance, Software-based, CRC Generators",
+ * Intel Research and Development, 2005
  */
 public class CRC64SlicingBy8 implements Checksum {
 

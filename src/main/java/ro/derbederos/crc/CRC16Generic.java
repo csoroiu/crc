@@ -2,6 +2,8 @@ package ro.derbederos.crc;
 
 /**
  * Byte-wise CRC implementation that can compute CRC with width <= 16 using different models.
+ * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
+ * via Table Look-Up", 1988
  */
 public class CRC16Generic extends CRC16 {
     private final int width;

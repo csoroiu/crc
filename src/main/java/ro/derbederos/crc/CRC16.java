@@ -6,16 +6,10 @@ import static ro.derbederos.crc.CRC16Util.fastInitLookupTableReflected;
 import static ro.derbederos.crc.CRC16Util.fastInitLookupTableUnreflected;
 import static ro.derbederos.crc.CRC16Util.reverseShort;
 
-/*
- * http://en.wikipedia.org/wiki/Cyclic_redundancy_check
- * http://reveng.sourceforge.net/crc-catalogue/
- * http://zlib.net/crc_v3.txt
- * http://create.stephan-brumme.com/crc32/
- * https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation
- */
-
 /**
  * Byte-wise CRC implementation that can compute CRC-16 using different models.
+ * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
+ * via Table Look-Up", 1988
  */
 public class CRC16 implements Checksum {
 

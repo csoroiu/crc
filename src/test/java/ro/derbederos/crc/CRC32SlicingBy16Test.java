@@ -12,19 +12,20 @@ import java.util.zip.Checksum;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-public class CRC32ReflectedSlicingBy8Test {
+public class CRC32SlicingBy16Test {
     private static final byte[] testInput = "123456789".getBytes();
     private CRCModel crcModel;
 
-    public CRC32ReflectedSlicingBy8Test(CRCModel crcModel) {
+    public CRC32SlicingBy16Test(CRCModel crcModel) {
         this.crcModel = crcModel;
     }
 
     @Test
     public void testCRCValue() {
-        Checksum checksum = new CRC32ReflectedSlicingBy8(
+        Checksum checksum = new CRC32SlicingBy16(
                 (int) crcModel.getPoly(),
                 (int) crcModel.getInit(),
+                crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 (int) crcModel.getXorOut());
         checksum.reset();
@@ -35,9 +36,10 @@ public class CRC32ReflectedSlicingBy8Test {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC32ReflectedSlicingBy8(
+        Checksum checksum = new CRC32SlicingBy16(
                 (int) crcModel.getPoly(),
                 (int) crcModel.getInit(),
+                crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 (int) crcModel.getXorOut());
         checksum.reset();
@@ -51,7 +53,7 @@ public class CRC32ReflectedSlicingBy8Test {
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() == 32 && crcModel.getRefIn())
+                .filter(crcModel -> crcModel.getWidth() == 32)
                 .collect(Collectors.toList());
     }
 }
