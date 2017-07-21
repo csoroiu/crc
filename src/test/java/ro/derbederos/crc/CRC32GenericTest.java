@@ -10,48 +10,24 @@ import java.util.stream.Collectors;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
-import static ro.derbederos.crc.Util.intToBytes;
+import static ro.derbederos.crc.Util.longToBytes;
 import static ro.derbederos.crc.Util.roundToByte;
 
 @RunWith(Parameterized.class)
-public class CRC32GenericTest {
-    private static final byte[] testInput = "123456789".getBytes();
-    private CRCModel crcModel;
+public class CRC32GenericTest extends AbstractCRCTest {
 
     public CRC32GenericTest(CRCModel crcModel) {
-        this.crcModel = crcModel;
+        super(crcModel, CRC32GenericTest::createCrc);
     }
 
-    @Test
-    public void testCRCValue() {
-        Checksum checksum = new CRC32Generic(
+    private static Checksum createCrc(CRCModel crcModel) {
+        return new CRC32Generic(
                 crcModel.getWidth(),
                 (int) crcModel.getPoly(),
                 (int) crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 (int) crcModel.getXorOut());
-        checksum.reset();
-        checksum.update(testInput, 0, testInput.length);
-        long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
-    }
-
-    @Test
-    public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC32Generic(
-                crcModel.getWidth(),
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
-        checksum.reset();
-        for (byte inputByte : testInput) {
-            checksum.update(inputByte);
-        }
-        long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
     }
 
     @Test
@@ -64,14 +40,14 @@ public class CRC32GenericTest {
                 crcModel.getRefOut(),
                 0);
 
-        int input = (int) crcModel.getXorOut();
+        long input = crcModel.getXorOut();
         if (crcModel.getRefOut()) {
             //TODO: hack, fixes issue with CRC-5/USB
-            input = Integer.reverse(input) >>> 32 - roundToByte(crcModel.getWidth());
+            input = Long.reverse(input) >>> 64 - roundToByte(crcModel.getWidth());
         }
-        byte[] newByte = intToBytes(input);
+        byte[] newByte = longToBytes(input);
         int len = roundToByte(crcModel.getWidth()) / 8;
-        checksum.update(newByte, 4 - len, len);
+        checksum.update(newByte, 8 - len, len);
         long residue = checksum.getValue();
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
     }

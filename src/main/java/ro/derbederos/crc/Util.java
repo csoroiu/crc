@@ -14,17 +14,4 @@ class Util {
         buffer.putLong(x);
         return buffer.array();
     }
-
-
-    static byte[] intToBytes(int x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES).order(ByteOrder.BIG_ENDIAN);
-        buffer.putInt(x);
-        return buffer.array();
-    }
-
-    static byte[] shortToBytes(short x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES).order(ByteOrder.BIG_ENDIAN);
-        buffer.putShort(x);
-        return buffer.array();
-    }
 }

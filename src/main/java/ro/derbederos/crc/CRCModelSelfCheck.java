@@ -5,7 +5,7 @@ import java.util.zip.Checksum;
 import static ro.derbederos.crc.Util.longToBytes;
 import static ro.derbederos.crc.Util.roundToByte;
 
-public class CRCModelSelfTest {
+public class CRCModelSelfCheck {
     private static final byte[] testInput = "123456789".getBytes();
 
     public static void validateCRCModelParams(CRCModel crcModel) {

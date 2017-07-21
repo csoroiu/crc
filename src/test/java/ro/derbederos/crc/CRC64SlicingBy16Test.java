@@ -1,6 +1,5 @@
 package ro.derbederos.crc;
 
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -9,45 +8,20 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.zip.Checksum;
 
-import static org.junit.Assert.assertEquals;
-
 @RunWith(Parameterized.class)
-public class CRC64SlicingBy16Test {
-    private static final byte[] testInput = "123456789".getBytes();
-    private CRCModel crcModel;
+public class CRC64SlicingBy16Test extends AbstractCRCTest {
 
     public CRC64SlicingBy16Test(CRCModel crcModel) {
-        this.crcModel = crcModel;
+        super(crcModel, CRC64SlicingBy16Test::createCrc);
     }
 
-    @Test
-    public void testCRCValue() {
-        Checksum checksum = new CRC64SlicingBy16(
+    private static Checksum createCrc(CRCModel crcModel) {
+        return new CRC64SlicingBy16(
                 crcModel.getPoly(),
                 crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 crcModel.getXorOut());
-        checksum.reset();
-        checksum.update(testInput, 0, testInput.length);
-        long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
-    }
-
-    @Test
-    public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = new CRC64SlicingBy16(
-                crcModel.getPoly(),
-                crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                crcModel.getXorOut());
-        checksum.reset();
-        for (byte inputByte : testInput) {
-            checksum.update(inputByte);
-        }
-        long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
     }
 
     @Parameterized.Parameters(name = "{0}")

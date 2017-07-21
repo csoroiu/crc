@@ -1,7 +1,9 @@
 package ro.derbederos.crc;
 
+import java.util.Objects;
+
 /**
- * Ross Williams compatible CRC definition model.
+ * Ross N. Williams compatible CRC definition model (http://www.ross.net/crc/download/crc_v3.txt)
  */
 public final class CRCModel {
     private final String name;
@@ -60,6 +62,24 @@ public final class CRCModel {
 
     public long getResidue() {
         return residue;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CRCModel crcModel = (CRCModel) o;
+        return width == crcModel.width &&
+                poly == crcModel.poly &&
+                init == crcModel.init &&
+                refIn == crcModel.refIn &&
+                refOut == crcModel.refOut &&
+                xorOut == crcModel.xorOut;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(width, poly, init, refIn, refOut, xorOut);
     }
 
     @Override
