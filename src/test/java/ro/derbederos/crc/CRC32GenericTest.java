@@ -81,6 +81,5 @@ public class CRC32GenericTest {
         return Arrays.stream(CRCFactory.getDefinedModels())
                 .filter(crcModel -> crcModel.getWidth() <= 32)
                 .collect(Collectors.toList());
-
     }
 }
