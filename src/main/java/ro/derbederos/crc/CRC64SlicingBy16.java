@@ -1,5 +1,7 @@
 package ro.derbederos.crc;
 
+import sun.misc.Unsafe;
+
 import java.util.zip.Checksum;
 
 import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
@@ -13,6 +15,8 @@ import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
  * Intel Research and Development, 2005
  */
 public class CRC64SlicingBy16 implements Checksum {
+
+    private static final boolean ARRAY_BYTE_INDEX_SCALE_ONE = Unsafe.ARRAY_BYTE_INDEX_SCALE == 1;
 
     private final long[][] lookupTable;
     final long poly;
@@ -67,24 +71,32 @@ public class CRC64SlicingBy16 implements Checksum {
     private static long updateReflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         int index = offset;
-        while (len > 15) {
-            localCrc = lookupTable[15][(int) ((localCrc ^ src[index++]) & 0xff)] ^
-                    lookupTable[14][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[13][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[12][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[11][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[10][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[9][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[8][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
-                    lookupTable[7][src[index++] & 0xff] ^
-                    lookupTable[6][src[index++] & 0xff] ^
-                    lookupTable[5][src[index++] & 0xff] ^
-                    lookupTable[4][src[index++] & 0xff] ^
-                    lookupTable[3][src[index++] & 0xff] ^
-                    lookupTable[2][src[index++] & 0xff] ^
-                    lookupTable[1][src[index++] & 0xff] ^
-                    lookupTable[0][src[index++] & 0xff];
-            len -= 16;
+        if (len > 15 && ARRAY_BYTE_INDEX_SCALE_ONE) {
+            int alignLength = getByteArrayAlignLength(offset);
+            while (alignLength > 0) {
+                localCrc = (localCrc >>> 8) ^ lookupTable[0][(int) ((localCrc ^ src[index++]) & 0xff)];
+                alignLength--;
+                len--;
+            }
+            while (len > 15) {
+                localCrc = lookupTable[15][(int) ((localCrc ^ src[index++]) & 0xff)] ^
+                           lookupTable[14][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
+                           lookupTable[13][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
+                           lookupTable[12][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
+                           lookupTable[11][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
+                           lookupTable[10][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
+                           lookupTable[9][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
+                           lookupTable[8][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
+                           lookupTable[7][src[index++] & 0xff] ^
+                           lookupTable[6][src[index++] & 0xff] ^
+                           lookupTable[5][src[index++] & 0xff] ^
+                           lookupTable[4][src[index++] & 0xff] ^
+                           lookupTable[3][src[index++] & 0xff] ^
+                           lookupTable[2][src[index++] & 0xff] ^
+                           lookupTable[1][src[index++] & 0xff] ^
+                           lookupTable[0][src[index++] & 0xff];
+                len -= 16;
+            }
         }
         while (len > 0) {
             localCrc = (localCrc >>> 8) ^ lookupTable[0][(int) ((localCrc ^ src[index++]) & 0xff)];
@@ -96,30 +108,42 @@ public class CRC64SlicingBy16 implements Checksum {
     private static long updateUnreflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         int index = offset;
-        while (len > 15) {
-            localCrc = lookupTable[15][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
-                    lookupTable[14][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[13][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[12][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[11][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[10][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[9][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[8][(int) ((localCrc ^ src[index++]) & 0xff)] ^
-                    lookupTable[7][src[index++] & 0xff] ^
-                    lookupTable[6][src[index++] & 0xff] ^
-                    lookupTable[5][src[index++] & 0xff] ^
-                    lookupTable[4][src[index++] & 0xff] ^
-                    lookupTable[3][src[index++] & 0xff] ^
-                    lookupTable[2][src[index++] & 0xff] ^
-                    lookupTable[1][src[index++] & 0xff] ^
-                    lookupTable[0][src[index++] & 0xff];
-            len -= 16;
+        if (len > 15 && ARRAY_BYTE_INDEX_SCALE_ONE) {
+            int alignLength = getByteArrayAlignLength(offset);
+            while (alignLength > 0) {
+                localCrc = (localCrc << 8) ^ lookupTable[0][(int) (((localCrc >>> 56) ^ src[index++]) & 0xff)];
+                alignLength--;
+                len--;
+            }
+            while (len > 15) {
+                localCrc = lookupTable[15][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
+                           lookupTable[14][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
+                           lookupTable[13][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
+                           lookupTable[12][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
+                           lookupTable[11][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
+                           lookupTable[10][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
+                           lookupTable[9][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
+                           lookupTable[8][(int) ((localCrc ^ src[index++]) & 0xff)] ^
+                           lookupTable[7][src[index++] & 0xff] ^
+                           lookupTable[6][src[index++] & 0xff] ^
+                           lookupTable[5][src[index++] & 0xff] ^
+                           lookupTable[4][src[index++] & 0xff] ^
+                           lookupTable[3][src[index++] & 0xff] ^
+                           lookupTable[2][src[index++] & 0xff] ^
+                           lookupTable[1][src[index++] & 0xff] ^
+                           lookupTable[0][src[index++] & 0xff];
+                len -= 16;
+            }
         }
         while (len > 0) {
             localCrc = (localCrc << 8) ^ lookupTable[0][(int) (((localCrc >>> 56) ^ src[index++]) & 0xff)];
             len--;
         }
         return localCrc;
+    }
+
+    private static int getByteArrayAlignLength(int offset) {
+        return (8 - ((Unsafe.ARRAY_BYTE_BASE_OFFSET + offset) & 0x7)) & 0x7;
     }
 
     public long getValue() {

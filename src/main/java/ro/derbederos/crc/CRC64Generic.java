@@ -2,12 +2,12 @@ package ro.derbederos.crc;
 
 /**
  * Byte-wise CRC implementation that can compute CRC with width <= 64 using different models.
- * It uses slicing-by-8 method (8 tables of 256 elements each).
+ * It uses slicing-by-16 method (16 tables of 256 elements each).
  * We use the algorithm described by Michael E. Kounavis and Frank L. Berry in
  * "A Systematic Approach to Building High Performance, Software-based, CRC Generators",
  * Intel Research and Development, 2005
  */
-public class CRC64Generic extends CRC64SlicingBy8 {
+public class CRC64Generic extends CRC64SlicingBy16 {
     private final int width;
 
     public CRC64Generic(int width, long poly, long init, boolean refIn, boolean refOut, long xorOut) {
