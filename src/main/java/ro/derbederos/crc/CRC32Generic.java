@@ -15,6 +15,7 @@ public class CRC32Generic extends CRC32SlicingBy8 {
         this.width = width;
     }
 
+    @Override
     public long getValue() {
         long result = super.getValue();
         if (!refOut) {

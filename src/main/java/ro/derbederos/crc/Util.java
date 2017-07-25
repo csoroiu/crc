@@ -9,12 +9,6 @@ class Util {
         return (bits + 7) >>> 3 << 3;
     }
 
-    static byte[] longToBytes(long x) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES).order(ByteOrder.BIG_ENDIAN);
-        buffer.putLong(x);
-        return buffer.array();
-    }
-
     static byte[] longToBytes(long x, ByteOrder order) {
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES).order(order);
         buffer.putLong(x);

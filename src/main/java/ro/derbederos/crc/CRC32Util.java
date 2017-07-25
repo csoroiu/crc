@@ -25,7 +25,7 @@ final class CRC32Util {
         lookupTable[1] = poly;
         int v = poly;
         for (int i = 2; i <= 128; i *= 2) {
-            v = (v << 1) ^ (poly & ~(((v & Integer.MIN_VALUE) >>> 31) - 1));
+            v = (v << 1) ^ (poly & ~((v >>> 31) - 1));
             lookupTable[i] = v;
         }
         for (int i = 2; i < 256; i *= 2) {

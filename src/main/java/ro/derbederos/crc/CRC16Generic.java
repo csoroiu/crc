@@ -13,6 +13,7 @@ public class CRC16Generic extends CRC16 {
         this.width = width;
     }
 
+    @Override
     public long getValue() {
         long result = super.getValue();
         if (!refOut) {

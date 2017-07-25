@@ -1,7 +1,5 @@
 package ro.derbederos.crc;
 
-import java.util.zip.Checksum;
-
 import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
 import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
 
@@ -12,7 +10,7 @@ import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
  * "A Systematic Approach to Building High Performance, Software-based, CRC Generators",
  * Intel Research and Development, 2005
  */
-public class CRC64SlicingBy16 implements Checksum {
+public class CRC64SlicingBy16 implements CRC {
 
     private final long[][] lookupTable;
     final long poly;
@@ -36,6 +34,7 @@ public class CRC64SlicingBy16 implements Checksum {
         reset();
     }
 
+    @Override
     public void reset() {
         if (refIn) {
             crc = Long.reverse(init);
@@ -44,6 +43,7 @@ public class CRC64SlicingBy16 implements Checksum {
         }
     }
 
+    @Override
     public void update(int b) {
         if (refIn) {
             crc = (crc >>> 8) ^ lookupTable[0][(int) ((crc ^ b) & 0xff)];
@@ -56,6 +56,7 @@ public class CRC64SlicingBy16 implements Checksum {
         update(src, 0, src.length);
     }
 
+    @Override
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
             crc = updateReflected(lookupTable, crc, src, offset, len);
@@ -122,6 +123,21 @@ public class CRC64SlicingBy16 implements Checksum {
         return localCrc;
     }
 
+    @Override
+    public void updateBits(int b, int bits) {
+        long reflectedPoly = Long.reverse(poly);
+        for (int i = 0; i < bits; i++) {
+            if (refIn) {
+                crc = (crc >>> 1) ^ (reflectedPoly & ~(((crc ^ b) & 1) - 1));
+                b >>>= 1;
+            } else {
+                crc = (crc << 1) ^ (poly & ~((((crc >>> 63) ^ (b >>> 7)) & 1) - 1));
+                b <<= 1;
+            }
+        }
+    }
+
+    @Override
     public long getValue() {
         if (refOut == refIn) {
             return crc ^ xorOut;

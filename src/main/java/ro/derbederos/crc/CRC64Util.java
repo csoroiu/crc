@@ -25,7 +25,7 @@ final class CRC64Util {
         lookupTable[1] = poly;
         long v = poly;
         for (int i = 2; i <= 128; i *= 2) {
-            v = (v << 1) ^ (poly & ~(((v & Long.MIN_VALUE) >>> 63) - 1));
+            v = (v << 1) ^ (poly & ~((v >>> 63) - 1));
             lookupTable[i] = v;
         }
         for (int i = 2; i < 256; i *= 2) {

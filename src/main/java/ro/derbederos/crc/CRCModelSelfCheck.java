@@ -1,9 +1,8 @@
 package ro.derbederos.crc;
 
-import java.util.zip.Checksum;
+import java.nio.ByteOrder;
 
 import static ro.derbederos.crc.Util.longToBytes;
-import static ro.derbederos.crc.Util.roundToByte;
 
 public class CRCModelSelfCheck {
     private static final byte[] testInput = "123456789".getBytes();
@@ -30,36 +29,35 @@ public class CRCModelSelfCheck {
     }
 
     public static boolean validateCRCValue(CRCModel crcModel) {
-        Checksum checksum = new CRC64Generic(
+        CRC crc = new CRC64Generic(
                 crcModel.getWidth(),
                 crcModel.getPoly(),
                 crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 crcModel.getXorOut());
-        checksum.reset();
-        checksum.update(testInput, 0, testInput.length);
-        long value = checksum.getValue();
+        crc.update(testInput, 0, testInput.length);
+        long value = crc.getValue();
         return value == crcModel.getCheck();
     }
 
     public static boolean validateCRCResidue(CRCModel crcModel) {
-        Checksum checksum = new CRC64Generic(
+        CRC crc = new CRC64Generic(
                 crcModel.getWidth(),
                 crcModel.getPoly(),
-                0,
+                crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
-                0);
-        long input = crcModel.getXorOut();
-        if (crcModel.getRefOut()) {
-            //TODO: hack, fixes issue with CRC-5/USB
-            input = Long.reverse(input) >>> 64 - roundToByte(crcModel.getWidth());
-        }
-        byte[] newByte = longToBytes(input);
-        int len = roundToByte(crcModel.getWidth()) / 8;
-        checksum.update(newByte, 8 - len, len);
-        long residue = checksum.getValue();
+                crcModel.getXorOut());
+        long input = crc.getValue();
+        byte[] newBytes = crcModel.getRefOut() ?
+                crcModel.getRefIn() ?
+                        longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
+                        longToBytes(Long.reverse(input), ByteOrder.BIG_ENDIAN) :
+                longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
+        crc.updateBits(newBytes, 0, crcModel.getWidth());
+
+        long residue = crc.getValue() ^ crcModel.getXorOut();
         return residue == crcModel.getResidue();
     }
 }

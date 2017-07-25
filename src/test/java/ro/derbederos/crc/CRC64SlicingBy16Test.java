@@ -6,7 +6,6 @@ import org.junit.runners.Parameterized;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.Checksum;
 
 @RunWith(Parameterized.class)
 public class CRC64SlicingBy16Test extends AbstractCRCTest {
@@ -15,7 +14,7 @@ public class CRC64SlicingBy16Test extends AbstractCRCTest {
         super(crcModel, CRC64SlicingBy16Test::createCrc);
     }
 
-    private static Checksum createCrc(CRCModel crcModel) {
+    private static CRC createCrc(CRCModel crcModel) {
         return new CRC64SlicingBy16(
                 crcModel.getPoly(),
                 crcModel.getInit(),

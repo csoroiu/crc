@@ -1,17 +1,13 @@
 package ro.derbederos.crc;
 
-import java.util.zip.Checksum;
-
-import static ro.derbederos.crc.CRC16Util.fastInitLookupTableReflected;
-import static ro.derbederos.crc.CRC16Util.fastInitLookupTableUnreflected;
-import static ro.derbederos.crc.CRC16Util.reverseShort;
+import static ro.derbederos.crc.CRC16Util.*;
 
 /**
  * Byte-wise CRC implementation that can compute CRC-16 using different models.
  * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
  * via Table Look-Up", 1988
  */
-public class CRC16 implements Checksum {
+public class CRC16 implements CRC {
 
     private final short[] lookupTable;
     final short poly;
@@ -35,6 +31,7 @@ public class CRC16 implements Checksum {
         reset();
     }
 
+    @Override
     public void reset() {
         if (refIn) {
             crc = reverseShort(init);
@@ -43,6 +40,7 @@ public class CRC16 implements Checksum {
         }
     }
 
+    @Override
     public void update(int b) {
         if (refIn) {
             crc = (short) ((((int) crc & 0xFFFF) >>> 8) ^ lookupTable[((crc ^ b) & 0xff)]);
@@ -55,6 +53,7 @@ public class CRC16 implements Checksum {
         update(src, 0, src.length);
     }
 
+    @Override
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
             crc = updateReflected(lookupTable, crc, src, offset, len);
@@ -81,6 +80,21 @@ public class CRC16 implements Checksum {
         return localCrc;
     }
 
+    @Override
+    public void updateBits(int b, int bits) {
+        short reflectedPoly = reverseShort(poly);
+        for (int i = 0; i < bits; i++) {
+            if (refIn) {
+                crc = (short) (((crc & 0xffff) >>> 1) ^ (reflectedPoly & ~(((crc ^ b) & 1) - 1)));
+                b >>>= 1;
+            } else {
+                crc = (short) ((crc << 1) ^ (poly & ~(((((crc & 0xffff) >>> 15) ^ (b >>> 7)) & 1) - 1)));
+                b <<= 1;
+            }
+        }
+    }
+
+    @Override
     public long getValue() {
         if (refOut == refIn) {
             return (crc ^ xorOut) & 0xFFFFL;

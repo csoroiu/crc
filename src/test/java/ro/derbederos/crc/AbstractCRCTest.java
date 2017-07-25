@@ -1,6 +1,5 @@
 package ro.derbederos.crc;
 
-import org.junit.Assume;
 import org.junit.Test;
 
 import java.nio.ByteOrder;
@@ -10,11 +9,10 @@ import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
 import static ro.derbederos.crc.Util.longToBytes;
-import static ro.derbederos.crc.Util.roundToByte;
 
 public abstract class AbstractCRCTest {
-    protected static final byte[] testInput = "123456789".getBytes();
-    protected static final byte[] testInputLong = new byte[1024];
+    private static final byte[] testInput = "123456789".getBytes();
+    private static final byte[] testInputLong = new byte[1024];
 
     static {
         long SEED = 0x12fed1a214ecbd00L;
@@ -23,9 +21,9 @@ public abstract class AbstractCRCTest {
     }
 
     protected final CRCModel crcModel;
-    protected final Function<CRCModel, Checksum> supplier;
+    private final Function<CRCModel, CRC> supplier;
 
-    AbstractCRCTest(CRCModel crcModel, Function<CRCModel, Checksum> supplier) {
+    AbstractCRCTest(CRCModel crcModel, Function<CRCModel, CRC> supplier) {
         this.crcModel = crcModel;
         this.supplier = supplier;
     }
@@ -45,6 +43,17 @@ public abstract class AbstractCRCTest {
         checksum.reset();
         for (byte inputByte : testInput) {
             checksum.update(inputByte);
+        }
+        long value = checksum.getValue();
+        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
+    }
+
+    @Test
+    public void testCRCValueUpdateBits() {
+        CRC checksum = supplier.apply(crcModel);
+        checksum.reset();
+        for (byte inputByte : testInput) {
+            checksum.updateBits(inputByte, 8);
         }
         long value = checksum.getValue();
         assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
@@ -74,33 +83,33 @@ public abstract class AbstractCRCTest {
 
     @Test
     public void testResidue() {
-        Assume.assumeTrue(crcModel.getWidth() % 8 == 0);
-        Checksum checksum = supplier.apply(crcModel);
-        long input = checksum.getValue();
+        CRC crc = supplier.apply(crcModel);
+        crc.update(testInput, 0, testInput.length);
+        long input = crc.getValue();
         byte[] newBytes = crcModel.getRefOut() ?
-                longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                longToBytes(input << 64 - roundToByte(crcModel.getWidth()), ByteOrder.BIG_ENDIAN);
-        int len = roundToByte(crcModel.getWidth()) / 8;
-        checksum.update(newBytes, 0, len);
+                crcModel.getRefIn() ?
+                        longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
+                        longToBytes(Long.reverse(input), ByteOrder.BIG_ENDIAN) :
+                longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
+        crc.updateBits(newBytes, 0, crcModel.getWidth());
 
-        long residue = checksum.getValue() ^ crcModel.getXorOut();
+        long residue = crc.getValue() ^ crcModel.getXorOut();
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
     }
 
     @Test
     public void testResidueLong() {
-        Assume.assumeTrue(crcModel.getWidth() % 8 == 0);
-        Checksum checksum = supplier.apply(crcModel);
-        checksum.update(testInputLong, 0, testInputLong.length);
-        long input = checksum.getValue();
+        CRC crc = supplier.apply(crcModel);
+        crc.update(testInputLong, 0, testInputLong.length);
+        long input = crc.getValue();
         byte[] newBytes = crcModel.getRefOut() ?
-                longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                longToBytes(input << 64 - roundToByte(crcModel.getWidth()), ByteOrder.BIG_ENDIAN);
-        int len = roundToByte(crcModel.getWidth()) / 8;
-        checksum.update(newBytes, 0, len);
+                crcModel.getRefIn() ?
+                        longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
+                        longToBytes(Long.reverse(input), ByteOrder.BIG_ENDIAN) :
+                longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
+        crc.updateBits(newBytes, 0, crcModel.getWidth());
 
-        long residue = checksum.getValue() ^ crcModel.getXorOut();
+        long residue = crc.getValue() ^ crcModel.getXorOut();
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
     }
-
 }

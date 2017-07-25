@@ -15,6 +15,7 @@ public class CRC64Generic extends CRC64SlicingBy16 {
         this.width = width;
     }
 
+    @Override
     public long getValue() {
         long result = super.getValue();
         if (!refOut) {
