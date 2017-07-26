@@ -50,10 +50,11 @@ public class CRCModelSelfCheck {
                 crcModel.getRefOut(),
                 crcModel.getXorOut());
         long input = crc.getValue();
-        byte[] newBytes = crcModel.getRefOut() ?
-                crcModel.getRefIn() ?
-                        longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                        longToBytes(Long.reverse(input), ByteOrder.BIG_ENDIAN) :
+        if (crcModel.getRefOut() != crcModel.getRefIn()) {
+            input = Long.reverse(input << 64 - crcModel.getWidth());
+        }
+        byte[] newBytes = crcModel.getRefIn() ?
+                longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
                 longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
         crc.updateBits(newBytes, 0, crcModel.getWidth());
 

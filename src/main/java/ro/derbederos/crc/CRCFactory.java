@@ -29,6 +29,10 @@ public class CRCFactory {
             String line;
             Map<String, CRCModel> models = new LinkedHashMap<>();
             while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("#")) {
+                    continue;
+                }
                 CRCModel model = parseLine(reader.getLineNumber(), line);
                 if (model != null) {
                     models.put(model.getName(), model);
@@ -44,7 +48,7 @@ public class CRCFactory {
     private static CRCModel parseLine(int lineNumber, String line) {
         try {
             Properties p = new Properties();
-            p.load(new StringReader(line.trim().replaceAll(" +", "\n")));
+            p.load(new StringReader(line.replaceAll(" +", "\n")));
             int width = Integer.parseInt(p.getProperty("width"), 10);
             long poly = parseLong(p.getProperty("poly"));
             long init = parseLong(p.getProperty("init"));

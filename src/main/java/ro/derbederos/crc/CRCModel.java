@@ -10,7 +10,7 @@ public final class CRCModel {
     private final int width;
     private final long poly;
     private final long init;
-    private final boolean refIn;
+    private final boolean refIn; // ByteOrder.BIG_ENDIAN(false) vs ByteOrder.LITTLE_ENDIAN(true)
     private final boolean refOut;
     private final long xorOut;
     private final long check;

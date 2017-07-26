@@ -86,10 +86,11 @@ public abstract class AbstractCRCTest {
         CRC crc = supplier.apply(crcModel);
         crc.update(testInput, 0, testInput.length);
         long input = crc.getValue();
-        byte[] newBytes = crcModel.getRefOut() ?
-                crcModel.getRefIn() ?
+        if (crcModel.getRefOut() != crcModel.getRefIn()) {
+            input = Long.reverse(input << 64 - crcModel.getWidth());
+        }
+        byte[] newBytes = crcModel.getRefIn() ?
                         longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                        longToBytes(Long.reverse(input), ByteOrder.BIG_ENDIAN) :
                 longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
         crc.updateBits(newBytes, 0, crcModel.getWidth());
 
@@ -102,10 +103,11 @@ public abstract class AbstractCRCTest {
         CRC crc = supplier.apply(crcModel);
         crc.update(testInputLong, 0, testInputLong.length);
         long input = crc.getValue();
-        byte[] newBytes = crcModel.getRefOut() ?
-                crcModel.getRefIn() ?
-                        longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                        longToBytes(Long.reverse(input), ByteOrder.BIG_ENDIAN) :
+        if (crcModel.getRefOut() != crcModel.getRefIn()) {
+            input = Long.reverse(input << 64 - crcModel.getWidth());
+        }
+        byte[] newBytes = crcModel.getRefIn() ?
+                longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
                 longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
         crc.updateBits(newBytes, 0, crcModel.getWidth());
 
