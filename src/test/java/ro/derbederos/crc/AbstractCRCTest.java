@@ -2,13 +2,12 @@ package ro.derbederos.crc;
 
 import org.junit.Test;
 
-import java.nio.ByteOrder;
 import java.util.Random;
 import java.util.function.Function;
 import java.util.zip.Checksum;
 
 import static org.junit.Assert.assertEquals;
-import static ro.derbederos.crc.Util.longToBytes;
+import static ro.derbederos.crc.CRCModelSelfCheck.computeResidue;
 
 public abstract class AbstractCRCTest {
     private static final byte[] testInput = "123456789".getBytes();
@@ -85,16 +84,7 @@ public abstract class AbstractCRCTest {
     public void testResidue() {
         CRC crc = supplier.apply(crcModel);
         crc.update(testInput, 0, testInput.length);
-        long input = crc.getValue();
-        if (crcModel.getRefOut() != crcModel.getRefIn()) {
-            input = Long.reverse(input << 64 - crcModel.getWidth());
-        }
-        byte[] newBytes = crcModel.getRefIn() ?
-                        longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
-        crc.updateBits(newBytes, 0, crcModel.getWidth());
-
-        long residue = crc.getValue() ^ crcModel.getXorOut();
+        long residue = computeResidue(crc, crcModel);
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
     }
 
@@ -102,16 +92,7 @@ public abstract class AbstractCRCTest {
     public void testResidueLong() {
         CRC crc = supplier.apply(crcModel);
         crc.update(testInputLong, 0, testInputLong.length);
-        long input = crc.getValue();
-        if (crcModel.getRefOut() != crcModel.getRefIn()) {
-            input = Long.reverse(input << 64 - crcModel.getWidth());
-        }
-        byte[] newBytes = crcModel.getRefIn() ?
-                longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
-        crc.updateBits(newBytes, 0, crcModel.getWidth());
-
-        long residue = crc.getValue() ^ crcModel.getXorOut();
+        long residue = computeResidue(crc, crcModel);
         assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
     }
 }

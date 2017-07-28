@@ -1,6 +1,8 @@
 package ro.derbederos.crc;
 
-import static ro.derbederos.crc.CRC16Util.*;
+import static ro.derbederos.crc.CRC16Util.fastInitLookupTableReflected;
+import static ro.derbederos.crc.CRC16Util.fastInitLookupTableUnreflected;
+import static ro.derbederos.crc.CRC16Util.reverseShort;
 
 /**
  * Byte-wise CRC implementation that can compute CRC-16 using different models.
@@ -96,10 +98,12 @@ public class CRC16 implements CRC {
 
     @Override
     public long getValue() {
-        if (refOut == refIn) {
-            return (crc ^ xorOut) & 0xFFFFL;
-        } else {
-            return (reverseShort(crc) ^ xorOut) & 0xFFFFL;
+        long result = crc;
+        //reflect output when necessary
+        if (refOut != refIn) {
+            result = reverseShort(crc);
         }
+        result = (result ^ xorOut) & 0xFFFFL;
+        return result;
     }
 }

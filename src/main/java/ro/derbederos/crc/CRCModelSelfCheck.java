@@ -1,15 +1,14 @@
 package ro.derbederos.crc;
 
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-
-import static ro.derbederos.crc.Util.longToBytes;
 
 public class CRCModelSelfCheck {
     private static final byte[] testInput = "123456789".getBytes();
 
     public static void validateCRCModelParams(CRCModel crcModel) {
-        long topBit = 1L << (crcModel.getWidth() - 1);
-        long mask = (topBit << 1) - 1;
+        long mask = 1L << crcModel.getWidth() - 1;
+        mask |= mask - 1;
 
         if ((crcModel.getPoly() & ~mask) != 0) {
             throw new IllegalArgumentException("Poly width too large.");
@@ -49,7 +48,12 @@ public class CRCModelSelfCheck {
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
                 crcModel.getXorOut());
+        return computeResidue(crc, crcModel) == crcModel.getResidue();
+    }
+
+    static long computeResidue(CRC crc, CRCModel crcModel) {
         long input = crc.getValue();
+        // reflect the input
         if (crcModel.getRefOut() != crcModel.getRefIn()) {
             input = Long.reverse(input << 64 - crcModel.getWidth());
         }
@@ -57,8 +61,13 @@ public class CRCModelSelfCheck {
                 longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
                 longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
         crc.updateBits(newBytes, 0, crcModel.getWidth());
+        // xor to get the residual value of the crc register
+        return crc.getValue() ^ crcModel.getXorOut();
+    }
 
-        long residue = crc.getValue() ^ crcModel.getXorOut();
-        return residue == crcModel.getResidue();
+    private static byte[] longToBytes(long x, ByteOrder order) {
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES).order(order);
+        buffer.putLong(x);
+        return buffer.array();
     }
 }

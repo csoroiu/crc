@@ -97,10 +97,12 @@ public class CRC64 implements CRC {
 
     @Override
     public long getValue() {
-        if (refOut == refIn) {
-            return crc ^ xorOut;
-        } else {
-            return Long.reverse(crc) ^ xorOut;
+        long result = crc;
+        //reflect output when necessary
+        if (refOut != refIn) {
+            result = Long.reverse(crc);
         }
+        result = (result ^ xorOut);
+        return result;
     }
 }

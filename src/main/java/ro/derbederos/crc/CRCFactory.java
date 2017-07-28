@@ -14,10 +14,12 @@ public class CRCFactory {
 
     private static Map<String, CRCModel> models = new LinkedHashMap<>();
     private static final CRCModel CRC32;
+    private static final CRCModel CRC32C;
 
     static {
         loadModels();
         CRC32 = getModel("CRC-32");
+        CRC32C = getModel("CRC-32C");
     }
 
     private static void loadModels() {
@@ -119,24 +121,16 @@ public class CRCFactory {
      * @return
      */
     public static Checksum getCRC(CRCModel model) {
-//        if (model.getWidth() < 16) {
+//        if (model.getWidth() <= 16) {
 //            return new CRC16Generic(model);
-//        } else if (model.getWidth() == 16) {
-//            return new CRC16(model);
-//        } else if (model.getWidth() < 32) {
-//            return new CRC32Generic(model);
 //        } else if (isAlias(CRC32, model)) {
 //            return new java.util.zip.CRC32();
-//        } else if (model.getWidth() == 32) {
-//            return new CRC32(model);
-//        } else if (model.getWidth() < 64) {
+//        } else if (isAlias(CRC32C, model)) {
+//            return new java.util.zip.CRC32C();
+//        } else if (model.getWidth() <= 32) {
+//            return new CRC32Generic(model);
+//        } else if (model.getWidth() <= 64) {
 //            return new CRC64Generic(model);
-//        } else if (model.getWidth() == 64) {
-//            if (model.getRefIn()) {
-//                return new CRC64Reflected(model);
-//            } else {
-//                return new CRC64Unreflected(model);
-//            }
 //        }
         throw new IllegalArgumentException("CRCFactory: Cannot find a generator for model " + model.getName());
     }

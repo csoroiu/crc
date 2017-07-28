@@ -123,10 +123,12 @@ public class CRC32SlicingBy8 implements CRC {
 
     @Override
     public long getValue() {
-        if (refOut == refIn) {
-            return ((long) (crc ^ xorOut)) & 0xFFFFFFFFL;
-        } else {
-            return ((long) (Integer.reverse(crc) ^ xorOut)) & 0xFFFFFFFFL;
+        long result = crc;
+        //reflect output when necessary
+        if (refOut != refIn) {
+            result = Integer.reverse(crc);
         }
+        result = (result ^ xorOut) & 0xFFFFFFFFL;
+        return result;
     }
 }
