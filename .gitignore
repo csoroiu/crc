@@ -1,5 +1,15 @@
 *.class
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Gradle
+!gradle-wrapper.jar
+.gradle/
+build/
+
 # Maven
 log/
 target/
