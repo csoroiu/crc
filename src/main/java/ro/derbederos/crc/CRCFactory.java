@@ -12,14 +12,22 @@ import java.util.zip.Checksum;
 
 public class CRCFactory {
 
+    public static final CRCModel CRC32;
+    public static final CRCModel CRC32C;
+
     private static Map<String, CRCModel> models = new LinkedHashMap<>();
-    private static final CRCModel CRC32;
-    private static final CRCModel CRC32C;
+    private static boolean javaCrc32cAvailable;
 
     static {
         loadModels();
         CRC32 = getModel("CRC-32");
         CRC32C = getModel("CRC-32C");
+        javaCrc32cAvailable = false;
+        try {
+            Class.forName("java.util.zip.CRC32C");
+            javaCrc32cAvailable = true;
+        } catch (ClassNotFoundException ignore) {
+        }
     }
 
     private static void loadModels() {
@@ -121,17 +129,15 @@ public class CRCFactory {
      * @return
      */
     public static Checksum getCRC(CRCModel model) {
-//        if (model.getWidth() <= 16) {
-//            return new CRC16Generic(model);
-//        } else if (isAlias(CRC32, model)) {
-//            return new java.util.zip.CRC32();
-//        } else if (isAlias(CRC32C, model)) {
-//            return new java.util.zip.CRC32C();
-//        } else if (model.getWidth() <= 32) {
-//            return new CRC32Generic(model);
-//        } else if (model.getWidth() <= 64) {
-//            return new CRC64Generic(model);
-//        }
+        if (isAlias(CRC32, model)) {
+            return new java.util.zip.CRC32();
+        } else if (javaCrc32cAvailable && isAlias(CRC32C, model)) {
+            return new java.util.zip.CRC32C();
+        } else if (model.getWidth() <= 32) {
+            return createCrc32(model);
+        } else if (model.getWidth() <= 64) {
+            return createCrc64(model);
+        }
         throw new IllegalArgumentException("CRCFactory: Cannot find a generator for model " + model.getName());
     }
 
@@ -142,5 +148,25 @@ public class CRCFactory {
                 reference.getRefIn() == input.getRefIn() &&
                 reference.getRefOut() == input.getRefOut() &&
                 reference.getXorOut() == reference.getXorOut());
+    }
+
+    private static CRC createCrc32(CRCModel crcModel) {
+        return new CRC32Generic(
+                crcModel.getWidth(),
+                (int) crcModel.getPoly(),
+                (int) crcModel.getInit(),
+                crcModel.getRefIn(),
+                crcModel.getRefOut(),
+                (int) crcModel.getXorOut());
+    }
+
+    private static CRC createCrc64(CRCModel crcModel) {
+        return new CRC64Generic(
+                crcModel.getWidth(),
+                crcModel.getPoly(),
+                crcModel.getInit(),
+                crcModel.getRefIn(),
+                crcModel.getRefOut(),
+                crcModel.getXorOut());
     }
 }
