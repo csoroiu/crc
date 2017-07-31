@@ -46,9 +46,9 @@ public class CRC64SlicingBy8 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[0][(int) ((crc ^ b) & 0xff)];
+            crc = (crc >>> 8) ^ lookupTable[0][((int) crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[0][(int) (((crc >>> 56) ^ b) & 0xff)];
+            crc = (crc << 8) ^ lookupTable[0][((int) (crc >>> 56) ^ b) & 0xff];
         }
     }
 
@@ -69,18 +69,20 @@ public class CRC64SlicingBy8 implements CRC {
         long localCrc = crc;
         int index = offset;
         while (len > 7) {
-            localCrc = lookupTable[7][(int) ((localCrc ^ src[index++]) & 0xff)] ^
-                    lookupTable[6][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[5][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[4][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[3][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[2][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[1][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[0][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff];
+            int high = (int) (localCrc >>> 32);
+            int low = (int) localCrc;
+            localCrc = lookupTable[7][(low ^ src[index++]) & 0xff] ^
+                    lookupTable[6][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[5][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[4][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[3][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[2][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[1][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[0][((high >>> 24) ^ src[index++]) & 0xff];
             len -= 8;
         }
         while (len > 0) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[0][(int) ((localCrc ^ src[index++]) & 0xff)];
+            localCrc = (localCrc >>> 8) ^ lookupTable[0][((int) localCrc ^ src[index++]) & 0xff];
             len--;
         }
         return localCrc;
@@ -90,18 +92,20 @@ public class CRC64SlicingBy8 implements CRC {
         long localCrc = crc;
         int index = offset;
         while (len > 7) {
-            localCrc = lookupTable[7][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
-                    lookupTable[6][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[5][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[4][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[3][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[2][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[1][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[0][(int) ((localCrc ^ src[index++]) & 0xff)];
+            int high = (int) (localCrc >>> 32);
+            int low = (int) localCrc;
+            localCrc = lookupTable[7][((high >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[6][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[5][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[4][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[3][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[2][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[1][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[0][(low ^ src[index++]) & 0xff];
             len -= 8;
         }
         while (len > 0) {
-            localCrc = (localCrc << 8) ^ lookupTable[0][(int) (((localCrc >>> 56) ^ src[index++]) & 0xff)];
+            localCrc = (localCrc << 8) ^ lookupTable[0][((int) (localCrc >>> 56) ^ src[index++]) & 0xff];
             len--;
         }
         return localCrc;

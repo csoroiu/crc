@@ -44,9 +44,9 @@ public class CRC64 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[(int) ((crc ^ b) & 0xff)];
+            crc = (crc >>> 8) ^ lookupTable[((int) crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[(int) (((crc >>> 56) ^ b) & 0xff)];
+            crc = (crc << 8) ^ lookupTable[((int) (crc >>> 56) ^ b) & 0xff];
         }
     }
 
@@ -66,8 +66,7 @@ public class CRC64 implements CRC {
     private static long updateReflected(long[] lookupTable, long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            int value = src[i];
-            localCrc = (localCrc >>> 8) ^ lookupTable[(int) ((localCrc ^ value) & 0xff)];
+            localCrc = (localCrc >>> 8) ^ lookupTable[((int) localCrc ^ src[i]) & 0xff];
         }
         return localCrc;
     }
@@ -75,8 +74,7 @@ public class CRC64 implements CRC {
     private static long updateUnreflected(long[] lookupTable, long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            int value = src[i];
-            localCrc = (localCrc << 8) ^ lookupTable[(int) (((localCrc >>> 56) ^ value) & 0xff)];
+            localCrc = (localCrc << 8) ^ lookupTable[((int) (localCrc >>> 56) ^ src[i]) & 0xff];
         }
         return localCrc;
     }

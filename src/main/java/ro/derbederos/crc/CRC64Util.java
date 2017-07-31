@@ -75,7 +75,7 @@ final class CRC64Util {
         for (int n = 0; n < 256; n++) {
             long v = lookupTable[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][(int) (v & 0xff)] ^ (v >>> 8);
+                v = lookupTable[0][((int) v & 0xff)] ^ (v >>> 8);
                 lookupTable[k][n] = v;
             }
         }
@@ -88,7 +88,7 @@ final class CRC64Util {
         for (int n = 0; n < 256; n++) {
             long v = lookupTable[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][(int) ((v >>> 56) & 0xff)] ^ (v << 8);
+                v = lookupTable[0][((int) (v >>> 56) & 0xff)] ^ (v << 8);
                 lookupTable[k][n] = v;
             }
         }

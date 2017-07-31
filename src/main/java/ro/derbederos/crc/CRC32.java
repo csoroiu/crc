@@ -66,8 +66,7 @@ public class CRC32 implements CRC {
     private static int updateReflected(int[] lookupTable, int crc, byte[] src, int offset, int len) {
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            int value = src[i];
-            localCrc = (localCrc >>> 8) ^ lookupTable[(localCrc ^ value) & 0xff];
+            localCrc = (localCrc >>> 8) ^ lookupTable[(localCrc ^ src[i]) & 0xff];
         }
         return localCrc;
     }
@@ -75,8 +74,7 @@ public class CRC32 implements CRC {
     private static int updateUnreflected(int[] lookupTable, int crc, byte[] src, int offset, int len) {
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            int value = src[i];
-            localCrc = (localCrc << 8) ^ lookupTable[((localCrc >>> 24) ^ value) & 0xff];
+            localCrc = (localCrc << 8) ^ lookupTable[((localCrc >>> 24) ^ src[i]) & 0xff];
         }
         return localCrc;
     }

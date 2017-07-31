@@ -46,9 +46,9 @@ public class CRC64SlicingBy16 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[0][(int) ((crc ^ b) & 0xff)];
+            crc = (crc >>> 8) ^ lookupTable[0][((int) crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[0][(int) (((crc >>> 56) ^ b) & 0xff)];
+            crc = (crc << 8) ^ lookupTable[0][((int) (crc >>> 56) ^ b) & 0xff];
         }
     }
 
@@ -69,14 +69,16 @@ public class CRC64SlicingBy16 implements CRC {
         long localCrc = crc;
         int index = offset;
         while (len > 15) {
-            localCrc = lookupTable[15][(int) ((localCrc ^ src[index++]) & 0xff)] ^
-                    lookupTable[14][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[13][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[12][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[11][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[10][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[9][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[8][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
+            int high = (int) (localCrc >>> 32);
+            int low = (int) localCrc;
+            localCrc = lookupTable[15][(low ^ src[index++]) & 0xff] ^
+                    lookupTable[14][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[13][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[12][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[11][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[10][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[9][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[8][((high >>> 24) ^ src[index++]) & 0xff] ^
                     lookupTable[7][src[index++] & 0xff] ^
                     lookupTable[6][src[index++] & 0xff] ^
                     lookupTable[5][src[index++] & 0xff] ^
@@ -88,7 +90,7 @@ public class CRC64SlicingBy16 implements CRC {
             len -= 16;
         }
         while (len > 0) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[0][(int) ((localCrc ^ src[index++]) & 0xff)];
+            localCrc = (localCrc >>> 8) ^ lookupTable[0][((int) localCrc ^ src[index++]) & 0xff];
             len--;
         }
         return localCrc;
@@ -98,14 +100,16 @@ public class CRC64SlicingBy16 implements CRC {
         long localCrc = crc;
         int index = offset;
         while (len > 15) {
-            localCrc = lookupTable[15][(int) ((localCrc >>> 56) ^ src[index++]) & 0xff] ^
-                    lookupTable[14][(int) (((localCrc >>> 48) ^ src[index++]) & 0xff)] ^
-                    lookupTable[13][(int) (((localCrc >>> 40) ^ src[index++]) & 0xff)] ^
-                    lookupTable[12][(int) (((localCrc >>> 32) ^ src[index++]) & 0xff)] ^
-                    lookupTable[11][(int) (((localCrc >>> 24) ^ src[index++]) & 0xff)] ^
-                    lookupTable[10][(int) (((localCrc >>> 16) ^ src[index++]) & 0xff)] ^
-                    lookupTable[9][(int) (((localCrc >>> 8) ^ src[index++]) & 0xff)] ^
-                    lookupTable[8][(int) ((localCrc ^ src[index++]) & 0xff)] ^
+            int high = (int) (localCrc >>> 32);
+            int low = (int) localCrc;
+            localCrc = lookupTable[15][((high >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[14][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[13][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[12][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[11][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[10][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[9][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[8][(low ^ src[index++]) & 0xff] ^
                     lookupTable[7][src[index++] & 0xff] ^
                     lookupTable[6][src[index++] & 0xff] ^
                     lookupTable[5][src[index++] & 0xff] ^
@@ -117,7 +121,7 @@ public class CRC64SlicingBy16 implements CRC {
             len -= 16;
         }
         while (len > 0) {
-            localCrc = (localCrc << 8) ^ lookupTable[0][(int) (((localCrc >>> 56) ^ src[index++]) & 0xff)];
+            localCrc = (localCrc << 8) ^ lookupTable[0][((int) (localCrc >>> 56) ^ src[index++]) & 0xff];
             len--;
         }
         return localCrc;
