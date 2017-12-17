@@ -34,7 +34,7 @@ public class CRCFactory {
     }
 
     private static void loadModels() {
-        URL crcModelsUrl = CRCFactory.class.getClassLoader().getResource("crccataloguemodels.txt");
+        URL crcModelsUrl = CRCFactory.class.getClassLoader().getResource("crc-catalogue-models.txt");
         if (crcModelsUrl == null) {
             return;
         }
