@@ -1,5 +1,7 @@
 package ro.derbederos.crc;
 
+import ro.derbederos.crc.purejava.CRC64Generic;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 

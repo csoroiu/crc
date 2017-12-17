@@ -1,5 +1,8 @@
 package ro.derbederos.crc;
 
+import ro.derbederos.crc.purejava.CRC32Generic;
+import ro.derbederos.crc.purejava.CRC64Generic;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;

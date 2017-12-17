@@ -1,21 +1,25 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import ro.derbederos.crc.AbstractCRCTest;
+import ro.derbederos.crc.CRC;
+import ro.derbederos.crc.CRCFactory;
+import ro.derbederos.crc.CRCModel;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
-public class CRC64Test extends AbstractCRCTest {
+public class CRC64SlicingBy8Test extends AbstractCRCTest {
 
-    public CRC64Test(CRCModel crcModel) {
-        super(crcModel, CRC64Test::createCrc);
+    public CRC64SlicingBy8Test(CRCModel crcModel) {
+        super(crcModel, CRC64SlicingBy8Test::createCrc);
     }
 
     private static CRC createCrc(CRCModel crcModel) {
-        return new CRC64(
+        return new CRC64SlicingBy8(
                 crcModel.getPoly(),
                 crcModel.getInit(),
                 crcModel.getRefIn(),

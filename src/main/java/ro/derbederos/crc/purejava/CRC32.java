@@ -1,24 +1,26 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
-import static ro.derbederos.crc.CRC64Util.fastInitLookupTableReflected;
-import static ro.derbederos.crc.CRC64Util.fastInitLookupTableUnreflected;
+import ro.derbederos.crc.CRC;
+
+import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableReflected;
+import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableUnreflected;
 
 /**
- * Byte-wise CRC implementation that can compute CRC-64 using different models.
+ * Byte-wise CRC implementation that can compute CRC-32 using different models.
  * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
  * via Table Look-Up", 1988
  */
-public class CRC64 implements CRC {
+public class CRC32 implements CRC {
 
-    private final long[] lookupTable;
-    final long poly;
-    final long init;
+    private final int[] lookupTable;
+    final int poly;
+    final int init;
     final boolean refIn; // reflect input data bytes
     final boolean refOut; // resulted sum needs to be reversed before xor
-    final long xorOut;
-    private long crc;
+    final int xorOut;
+    private int crc;
 
-    public CRC64(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
+    public CRC32(int poly, int init, boolean refIn, boolean refOut, int xorOut) {
         this.poly = poly;
         this.init = init;
         this.refIn = refIn;
@@ -35,7 +37,7 @@ public class CRC64 implements CRC {
     @Override
     public void reset() {
         if (refIn) {
-            crc = Long.reverse(init);
+            crc = Integer.reverse(init);
         } else {
             crc = init;
         }
@@ -44,9 +46,9 @@ public class CRC64 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[((int) crc ^ b) & 0xff];
+            crc = (crc >>> 8) ^ lookupTable[(crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[((int) (crc >>> 56) ^ b) & 0xff];
+            crc = (crc << 8) ^ lookupTable[((crc >>> 24) ^ b) & 0xff];
         }
     }
 
@@ -63,31 +65,31 @@ public class CRC64 implements CRC {
         }
     }
 
-    private static long updateReflected(long[] lookupTable, long crc, byte[] src, int offset, int len) {
-        long localCrc = crc;
+    private static int updateReflected(int[] lookupTable, int crc, byte[] src, int offset, int len) {
+        int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[((int) localCrc ^ src[i]) & 0xff];
+            localCrc = (localCrc >>> 8) ^ lookupTable[(localCrc ^ src[i]) & 0xff];
         }
         return localCrc;
     }
 
-    private static long updateUnreflected(long[] lookupTable, long crc, byte[] src, int offset, int len) {
-        long localCrc = crc;
+    private static int updateUnreflected(int[] lookupTable, int crc, byte[] src, int offset, int len) {
+        int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            localCrc = (localCrc << 8) ^ lookupTable[((int) (localCrc >>> 56) ^ src[i]) & 0xff];
+            localCrc = (localCrc << 8) ^ lookupTable[((localCrc >>> 24) ^ src[i]) & 0xff];
         }
         return localCrc;
     }
 
     @Override
     public void updateBits(int b, int bits) {
-        long reflectedPoly = Long.reverse(poly);
+        int reflectedPoly = Integer.reverse(poly);
         for (int i = 0; i < bits; i++) {
             if (refIn) {
                 crc = (crc >>> 1) ^ (reflectedPoly & ~(((crc ^ b) & 1) - 1));
                 b >>>= 1;
             } else {
-                crc = (crc << 1) ^ (poly & ~((((crc >>> 63) ^ (b >>> 7)) & 1) - 1));
+                crc = (crc << 1) ^ (poly & ~((((crc >>> 31) ^ (b >>> 7)) & 1) - 1));
                 b <<= 1;
             }
         }
@@ -98,9 +100,9 @@ public class CRC64 implements CRC {
         long result = crc;
         //reflect output when necessary
         if (refOut != refIn) {
-            result = Long.reverse(crc);
+            result = Integer.reverse(crc);
         }
-        result = (result ^ xorOut);
+        result = (result ^ xorOut) & 0xFFFFFFFFL;
         return result;
     }
 }

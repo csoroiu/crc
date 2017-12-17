@@ -1,16 +1,18 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
-import static ro.derbederos.crc.CRC64Util.initLookupTablesReflected;
-import static ro.derbederos.crc.CRC64Util.initLookupTablesUnreflected;
+import ro.derbederos.crc.CRC;
+
+import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesReflected;
+import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesUnreflected;
 
 /**
  * Byte-wise CRC implementation that can compute CRC-64 using different models.
- * It uses slicing-by-16 method (16 tables of 256 elements each).
+ * It uses slicing-by-8 method (8 tables of 256 elements each).
  * We use the algorithm described by Michael E. Kounavis and Frank L. Berry in
  * "A Systematic Approach to Building High Performance, Software-based, CRC Generators",
  * Intel Research and Development, 2005
  */
-public class CRC64SlicingBy16 implements CRC {
+public class CRC64SlicingBy8 implements CRC {
 
     private final long[][] lookupTable;
     final long poly;
@@ -20,16 +22,16 @@ public class CRC64SlicingBy16 implements CRC {
     final long xorOut;
     private long crc;
 
-    public CRC64SlicingBy16(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
+    public CRC64SlicingBy8(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
         this.poly = poly;
         this.init = init;
         this.refIn = refIn;
         this.refOut = refOut;
         this.xorOut = xorOut;
         if (refIn) {
-            lookupTable = initLookupTablesReflected(poly, 16);
+            lookupTable = initLookupTablesReflected(poly, 8);
         } else {
-            lookupTable = initLookupTablesUnreflected(poly, 16);
+            lookupTable = initLookupTablesUnreflected(poly, 8);
         }
         reset();
     }
@@ -68,26 +70,18 @@ public class CRC64SlicingBy16 implements CRC {
     private static long updateReflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         int index = offset;
-        while (len > 15) {
+        while (len > 7) {
             int high = (int) (localCrc >>> 32);
             int low = (int) localCrc;
-            localCrc = lookupTable[15][(low ^ src[index++]) & 0xff] ^
-                    lookupTable[14][((low >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTable[13][((low >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTable[12][((low >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTable[11][(high ^ src[index++]) & 0xff] ^
-                    lookupTable[10][((high >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTable[9][((high >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTable[8][((high >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTable[7][src[index++] & 0xff] ^
-                    lookupTable[6][src[index++] & 0xff] ^
-                    lookupTable[5][src[index++] & 0xff] ^
-                    lookupTable[4][src[index++] & 0xff] ^
-                    lookupTable[3][src[index++] & 0xff] ^
-                    lookupTable[2][src[index++] & 0xff] ^
-                    lookupTable[1][src[index++] & 0xff] ^
-                    lookupTable[0][src[index++] & 0xff];
-            len -= 16;
+            localCrc = lookupTable[7][(low ^ src[index++]) & 0xff] ^
+                    lookupTable[6][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[5][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[4][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[3][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[2][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[1][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[0][((high >>> 24) ^ src[index++]) & 0xff];
+            len -= 8;
         }
         while (len > 0) {
             localCrc = (localCrc >>> 8) ^ lookupTable[0][((int) localCrc ^ src[index++]) & 0xff];
@@ -99,26 +93,18 @@ public class CRC64SlicingBy16 implements CRC {
     private static long updateUnreflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         int index = offset;
-        while (len > 15) {
+        while (len > 7) {
             int high = (int) (localCrc >>> 32);
             int low = (int) localCrc;
-            localCrc = lookupTable[15][((high >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTable[14][((high >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTable[13][((high >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTable[12][(high ^ src[index++]) & 0xff] ^
-                    lookupTable[11][((low >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTable[10][((low >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTable[9][((low >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTable[8][(low ^ src[index++]) & 0xff] ^
-                    lookupTable[7][src[index++] & 0xff] ^
-                    lookupTable[6][src[index++] & 0xff] ^
-                    lookupTable[5][src[index++] & 0xff] ^
-                    lookupTable[4][src[index++] & 0xff] ^
-                    lookupTable[3][src[index++] & 0xff] ^
-                    lookupTable[2][src[index++] & 0xff] ^
-                    lookupTable[1][src[index++] & 0xff] ^
-                    lookupTable[0][src[index++] & 0xff];
-            len -= 16;
+            localCrc = lookupTable[7][((high >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[6][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[5][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[4][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[3][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[2][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[1][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[0][(low ^ src[index++]) & 0xff];
+            len -= 8;
         }
         while (len > 0) {
             localCrc = (localCrc << 8) ^ lookupTable[0][((int) (localCrc >>> 56) ^ src[index++]) & 0xff];

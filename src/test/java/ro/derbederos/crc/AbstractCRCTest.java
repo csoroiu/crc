@@ -1,6 +1,7 @@
 package ro.derbederos.crc;
 
 import org.junit.Test;
+import ro.derbederos.crc.purejava.CRC64Generic;
 
 import java.util.Random;
 import java.util.function.Function;
@@ -22,7 +23,7 @@ public abstract class AbstractCRCTest {
     protected final CRCModel crcModel;
     private final Function<CRCModel, CRC> supplier;
 
-    AbstractCRCTest(CRCModel crcModel, Function<CRCModel, CRC> supplier) {
+    protected AbstractCRCTest(CRCModel crcModel, Function<CRCModel, CRC> supplier) {
         this.crcModel = crcModel;
         this.supplier = supplier;
     }

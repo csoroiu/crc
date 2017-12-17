@@ -1,4 +1,4 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
 /**
  * Byte-wise CRC implementation that can compute CRC with width &lt;= 64 using different models.

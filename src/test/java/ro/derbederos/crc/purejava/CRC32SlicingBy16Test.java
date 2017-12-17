@@ -1,7 +1,11 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import ro.derbederos.crc.AbstractCRCTest;
+import ro.derbederos.crc.CRC;
+import ro.derbederos.crc.CRCFactory;
+import ro.derbederos.crc.CRCModel;
 
 import java.util.Arrays;
 import java.util.List;

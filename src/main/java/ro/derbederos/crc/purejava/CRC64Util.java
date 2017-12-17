@@ -1,12 +1,12 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
-final class CRC32Util {
-    static int[] fastInitLookupTableReflected(int poly) {
-        int reflectedPoly = Integer.reverse(poly);
-        int[] lookupTable = new int[0x100];
+final class CRC64Util {
+    static long[] fastInitLookupTableReflected(long poly) {
+        long reflectedPoly = Long.reverse(poly);
+        long[] lookupTable = new long[0x100];
         lookupTable[0] = 0;
         lookupTable[0x80] = reflectedPoly;
-        int v = reflectedPoly;
+        long v = reflectedPoly;
         for (int i = 64; i != 0; i /= 2) {
             v = (v >>> 1) ^ (reflectedPoly & ~((v & 1) - 1));
             lookupTable[i] = v;
@@ -19,13 +19,13 @@ final class CRC32Util {
         return lookupTable;
     }
 
-    static int[] fastInitLookupTableUnreflected(int poly) {
-        int[] lookupTable = new int[0x100];
+    static long[] fastInitLookupTableUnreflected(long poly) {
+        long[] lookupTable = new long[0x100];
         lookupTable[0] = 0;
         lookupTable[1] = poly;
-        int v = poly;
+        long v = poly;
         for (int i = 2; i <= 128; i *= 2) {
-            v = (v << 1) ^ (poly & ~((v >>> 31) - 1));
+            v = (v << 1) ^ (poly & ~((v >>> 63) - 1));
             lookupTable[i] = v;
         }
         for (int i = 2; i < 256; i *= 2) {
@@ -36,11 +36,11 @@ final class CRC32Util {
         return lookupTable;
     }
 
-    static int[] initLookupTableReflected(int poly) {
-        int reflectedPoly = Integer.reverse(poly);
-        int[] lookupTable = new int[0x100];
+    static long[] initLookupTableReflected(long poly) {
+        long reflectedPoly = Long.reverse(poly);
+        long[] lookupTable = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
-            int v = i;
+            long v = i;
             for (int j = 0; j < 8; j++) {
                 if ((v & 1) == 1) {
                     v = (v >>> 1) ^ reflectedPoly;
@@ -53,12 +53,12 @@ final class CRC32Util {
         return lookupTable;
     }
 
-    static int[] initLookupTableUnreflected(int poly) {
-        int[] lookupTable = new int[0x100];
+    static long[] initLookupTableUnreflected(long poly) {
+        long[] lookupTable = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
-            int v = i << 24;
+            long v = ((long) i) << 56;
             for (int j = 0; j < 8; j++) {
-                if ((v & Integer.MIN_VALUE) != 0) {
+                if ((v & Long.MIN_VALUE) != 0) {
                     v = (v << 1) ^ poly;
                 } else {
                     v = (v << 1);
@@ -69,26 +69,26 @@ final class CRC32Util {
         return lookupTable;
     }
 
-    static int[][] initLookupTablesReflected(int poly, int dimension) {
-        int[][] lookupTable = new int[dimension][0x100];
+    static long[][] initLookupTablesReflected(long poly, int dimension) {
+        long[][] lookupTable = new long[dimension][0x100];
         lookupTable[0] = fastInitLookupTableReflected(poly);
         for (int n = 0; n < 256; n++) {
-            int v = lookupTable[0][n];
+            long v = lookupTable[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][v & 0xff] ^ (v >>> 8);
+                v = lookupTable[0][((int) v & 0xff)] ^ (v >>> 8);
                 lookupTable[k][n] = v;
             }
         }
         return lookupTable;
     }
 
-    static int[][] initLookupTablesUnreflected(int poly, int dimension) {
-        int[][] lookupTable = new int[dimension][0x100];
+    static long[][] initLookupTablesUnreflected(long poly, int dimension) {
+        long[][] lookupTable = new long[dimension][0x100];
         lookupTable[0] = fastInitLookupTableUnreflected(poly);
         for (int n = 0; n < 256; n++) {
-            int v = lookupTable[0][n];
+            long v = lookupTable[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][(v >>> 24) & 0xff] ^ (v << 8);
+                v = lookupTable[0][((int) (v >>> 56) & 0xff)] ^ (v << 8);
                 lookupTable[k][n] = v;
             }
         }

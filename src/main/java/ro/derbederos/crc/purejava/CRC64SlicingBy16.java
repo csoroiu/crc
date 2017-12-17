@@ -1,26 +1,28 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
-import static ro.derbederos.crc.CRC32Util.initLookupTablesReflected;
-import static ro.derbederos.crc.CRC32Util.initLookupTablesUnreflected;
+import ro.derbederos.crc.CRC;
+
+import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesReflected;
+import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesUnreflected;
 
 /**
- * Byte-wise CRC implementation that can compute CRC-32 using different models.
+ * Byte-wise CRC implementation that can compute CRC-64 using different models.
  * It uses slicing-by-16 method (16 tables of 256 elements each).
  * We use the algorithm described by Michael E. Kounavis and Frank L. Berry in
  * "A Systematic Approach to Building High Performance, Software-based, CRC Generators",
  * Intel Research and Development, 2005
  */
-public class CRC32SlicingBy16 implements CRC {
+public class CRC64SlicingBy16 implements CRC {
 
-    private final int[][] lookupTable;
-    final int poly;
-    final int init;
+    private final long[][] lookupTable;
+    final long poly;
+    final long init;
     final boolean refIn; // reflect input data bytes
     final boolean refOut; // resulted sum needs to be reversed before xor
-    final int xorOut;
-    private int crc;
+    final long xorOut;
+    private long crc;
 
-    public CRC32SlicingBy16(int poly, int init, boolean refIn, boolean refOut, int xorOut) {
+    public CRC64SlicingBy16(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
         this.poly = poly;
         this.init = init;
         this.refIn = refIn;
@@ -37,7 +39,7 @@ public class CRC32SlicingBy16 implements CRC {
     @Override
     public void reset() {
         if (refIn) {
-            crc = Integer.reverse(init);
+            crc = Long.reverse(init);
         } else {
             crc = init;
         }
@@ -46,9 +48,9 @@ public class CRC32SlicingBy16 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[0][(crc ^ b) & 0xff];
+            crc = (crc >>> 8) ^ lookupTable[0][((int) crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[0][((crc >>> 24) ^ b) & 0xff];
+            crc = (crc << 8) ^ lookupTable[0][((int) (crc >>> 56) ^ b) & 0xff];
         }
     }
 
@@ -65,18 +67,20 @@ public class CRC32SlicingBy16 implements CRC {
         }
     }
 
-    private static int updateReflected(int[][] lookupTable, int crc, byte[] src, int offset, int len) {
-        int localCrc = crc;
+    private static long updateReflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
+        long localCrc = crc;
         int index = offset;
         while (len > 15) {
-            localCrc = lookupTable[15][(localCrc ^ src[index++]) & 0xff] ^
-                    lookupTable[14][((localCrc >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTable[13][((localCrc >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTable[12][((localCrc >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTable[11][src[index++] & 0xff] ^
-                    lookupTable[10][src[index++] & 0xff] ^
-                    lookupTable[9][src[index++] & 0xff] ^
-                    lookupTable[8][src[index++] & 0xff] ^
+            int high = (int) (localCrc >>> 32);
+            int low = (int) localCrc;
+            localCrc = lookupTable[15][(low ^ src[index++]) & 0xff] ^
+                    lookupTable[14][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[13][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[12][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[11][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[10][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[9][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[8][((high >>> 24) ^ src[index++]) & 0xff] ^
                     lookupTable[7][src[index++] & 0xff] ^
                     lookupTable[6][src[index++] & 0xff] ^
                     lookupTable[5][src[index++] & 0xff] ^
@@ -88,24 +92,26 @@ public class CRC32SlicingBy16 implements CRC {
             len -= 16;
         }
         while (len > 0) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[0][(localCrc ^ src[index++]) & 0xff];
+            localCrc = (localCrc >>> 8) ^ lookupTable[0][((int) localCrc ^ src[index++]) & 0xff];
             len--;
         }
         return localCrc;
     }
 
-    private static int updateUnreflected(int[][] lookupTable, int crc, byte[] src, int offset, int len) {
-        int localCrc = crc;
+    private static long updateUnreflected(long[][] lookupTable, long crc, byte[] src, int offset, int len) {
+        long localCrc = crc;
         int index = offset;
         while (len > 15) {
-            localCrc = lookupTable[15][((localCrc >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTable[14][((localCrc >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTable[13][((localCrc >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTable[12][(localCrc ^ src[index++]) & 0xff] ^
-                    lookupTable[11][src[index++] & 0xff] ^
-                    lookupTable[10][src[index++] & 0xff] ^
-                    lookupTable[9][src[index++] & 0xff] ^
-                    lookupTable[8][src[index++] & 0xff] ^
+            int high = (int) (localCrc >>> 32);
+            int low = (int) localCrc;
+            localCrc = lookupTable[15][((high >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[14][((high >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[13][((high >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[12][(high ^ src[index++]) & 0xff] ^
+                    lookupTable[11][((low >>> 24) ^ src[index++]) & 0xff] ^
+                    lookupTable[10][((low >>> 16) ^ src[index++]) & 0xff] ^
+                    lookupTable[9][((low >>> 8) ^ src[index++]) & 0xff] ^
+                    lookupTable[8][(low ^ src[index++]) & 0xff] ^
                     lookupTable[7][src[index++] & 0xff] ^
                     lookupTable[6][src[index++] & 0xff] ^
                     lookupTable[5][src[index++] & 0xff] ^
@@ -117,7 +123,7 @@ public class CRC32SlicingBy16 implements CRC {
             len -= 16;
         }
         while (len > 0) {
-            localCrc = (localCrc << 8) ^ lookupTable[0][((localCrc >>> 24) ^ src[index++]) & 0xff];
+            localCrc = (localCrc << 8) ^ lookupTable[0][((int) (localCrc >>> 56) ^ src[index++]) & 0xff];
             len--;
         }
         return localCrc;
@@ -125,13 +131,13 @@ public class CRC32SlicingBy16 implements CRC {
 
     @Override
     public void updateBits(int b, int bits) {
-        int reflectedPoly = Integer.reverse(poly);
+        long reflectedPoly = Long.reverse(poly);
         for (int i = 0; i < bits; i++) {
             if (refIn) {
                 crc = (crc >>> 1) ^ (reflectedPoly & ~(((crc ^ b) & 1) - 1));
                 b >>>= 1;
             } else {
-                crc = (crc << 1) ^ (poly & ~((((crc >>> 31) ^ (b >>> 7)) & 1) - 1));
+                crc = (crc << 1) ^ (poly & ~((((crc >>> 63) ^ (b >>> 7)) & 1) - 1));
                 b <<= 1;
             }
         }
@@ -142,9 +148,9 @@ public class CRC32SlicingBy16 implements CRC {
         long result = crc;
         //reflect output when necessary
         if (refOut != refIn) {
-            result = Integer.reverse(crc);
+            result = Long.reverse(crc);
         }
-        result = (result ^ xorOut) & 0xFFFFFFFFL;
+        result = (result ^ xorOut);
         return result;
     }
 }

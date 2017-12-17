@@ -1,33 +1,37 @@
-package ro.derbederos.crc;
+package ro.derbederos.crc.purejava;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import ro.derbederos.crc.AbstractCRCTest;
+import ro.derbederos.crc.CRC;
+import ro.derbederos.crc.CRCFactory;
+import ro.derbederos.crc.CRCModel;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
-public class CRC64GenericTest extends AbstractCRCTest {
+public class CRC32GenericTest extends AbstractCRCTest {
 
-    public CRC64GenericTest(CRCModel crcModel) {
-        super(crcModel, CRC64GenericTest::createCrc);
+    public CRC32GenericTest(CRCModel crcModel) {
+        super(crcModel, CRC32GenericTest::createCrc);
     }
 
     private static CRC createCrc(CRCModel crcModel) {
-        return new CRC64Generic(
+        return new CRC32Generic(
                 crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
+                (int) crcModel.getPoly(),
+                (int) crcModel.getInit(),
                 crcModel.getRefIn(),
                 crcModel.getRefOut(),
-                crcModel.getXorOut());
+                (int) crcModel.getXorOut());
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() <= 64)
+                .filter(crcModel -> crcModel.getWidth() <= 32)
                 .collect(Collectors.toList());
     }
 }

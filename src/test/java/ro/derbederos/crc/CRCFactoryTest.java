@@ -25,7 +25,7 @@ public class CRCFactoryTest {
     }
 
     @Test
-    @Ignore
+    @Ignore //FIXME support for alliases not implemented yet
     public void testGetModelByAlias() {
         CRCModel crcModel = CRCFactory.getModel("PKZIP");
         assertNotNull(crcModel);
