@@ -70,28 +70,28 @@ final class CRC32Util {
     }
 
     static int[][] initLookupTablesReflected(int poly, int dimension) {
-        int[][] lookupTable = new int[dimension][0x100];
-        lookupTable[0] = fastInitLookupTableReflected(poly);
+        int[][] lookupTables = new int[dimension][0x100];
+        lookupTables[0] = fastInitLookupTableReflected(poly);
         for (int n = 0; n < 256; n++) {
-            int v = lookupTable[0][n];
+            int v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][v & 0xff] ^ (v >>> 8);
-                lookupTable[k][n] = v;
+                v = lookupTables[0][v & 0xff] ^ (v >>> 8);
+                lookupTables[k][n] = v;
             }
         }
-        return lookupTable;
+        return lookupTables;
     }
 
     static int[][] initLookupTablesUnreflected(int poly, int dimension) {
-        int[][] lookupTable = new int[dimension][0x100];
-        lookupTable[0] = fastInitLookupTableUnreflected(poly);
+        int[][] lookupTables = new int[dimension][0x100];
+        lookupTables[0] = fastInitLookupTableUnreflected(poly);
         for (int n = 0; n < 256; n++) {
-            int v = lookupTable[0][n];
+            int v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][(v >>> 24) & 0xff] ^ (v << 8);
-                lookupTable[k][n] = v;
+                v = lookupTables[0][(v >>> 24) & 0xff] ^ (v << 8);
+                lookupTables[k][n] = v;
             }
         }
-        return lookupTable;
+        return lookupTables;
     }
 }

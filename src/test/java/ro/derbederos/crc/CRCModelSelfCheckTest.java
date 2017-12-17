@@ -1,5 +1,6 @@
 package ro.derbederos.crc;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -35,7 +36,7 @@ public class CRCModelSelfCheckTest {
     }
 
     @Test
-//    @Ignore
+    @Ignore
     public void testInit() {
         if (crcModel.getInit() != 0) {
             long mask = 1L << crcModel.getWidth() - 1;
@@ -45,7 +46,7 @@ public class CRCModelSelfCheckTest {
     }
 
     @Test
-//    @Ignore
+    @Ignore
     public void testXorOut() {
         if (crcModel.getXorOut() != 0) {
             long mask = 1L << crcModel.getWidth() - 1;

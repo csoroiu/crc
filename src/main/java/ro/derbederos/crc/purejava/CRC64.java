@@ -12,13 +12,13 @@ import static ro.derbederos.crc.purejava.CRC64Util.fastInitLookupTableUnreflecte
  */
 public class CRC64 implements CRC {
 
-    private final long[] lookupTable;
-    final long poly;
-    final long init;
-    final boolean refIn; // reflect input data bytes
-    final boolean refOut; // resulted sum needs to be reversed before xor
-    final long xorOut;
-    private long crc;
+    protected final long[] lookupTable;
+    protected final long poly;
+    protected final long init;
+    protected final boolean refIn; // reflect input data bytes
+    protected final boolean refOut; // resulted sum needs to be reversed before xor
+    protected final long xorOut;
+    protected long crc;
 
     public CRC64(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
         this.poly = poly;
