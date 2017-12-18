@@ -7,6 +7,7 @@ import java.util.Random;
 import java.util.function.Function;
 import java.util.zip.Checksum;
 
+import static java.lang.Long.toHexString;
 import static org.junit.Assert.assertEquals;
 import static ro.derbederos.crc.CRCModelSelfCheck.computeResidue;
 
@@ -34,7 +35,7 @@ public abstract class AbstractCRCTest {
         checksum.reset();
         checksum.update(testInput, 0, testInput.length);
         long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
+        assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
     }
 
     @Test
@@ -45,7 +46,7 @@ public abstract class AbstractCRCTest {
             checksum.update(inputByte);
         }
         long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
+        assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
     }
 
     @Test
@@ -56,7 +57,7 @@ public abstract class AbstractCRCTest {
             checksum.updateBits(inputByte, 8);
         }
         long value = checksum.getValue();
-        assertEquals(Long.toHexString(crcModel.getCheck()), Long.toHexString(value));
+        assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
     }
 
     @Test
@@ -77,7 +78,7 @@ public abstract class AbstractCRCTest {
             checksum.reset();
             checksum.update(testInputLong, i % 16, testInputLong.length - i % 16);
             long value = checksum.getValue();
-            assertEquals("at iteration " + i, Long.toHexString(expectedValue), Long.toHexString(value));
+            assertEquals("at iteration " + i, toHexString(expectedValue), toHexString(value));
         }
     }
 
@@ -86,7 +87,7 @@ public abstract class AbstractCRCTest {
         CRC crc = supplier.apply(crcModel);
         crc.update(testInput, 0, testInput.length);
         long residue = computeResidue(crc, crcModel);
-        assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
+        assertEquals(toHexString(crcModel.getResidue()), toHexString(residue));
     }
 
     @Test
@@ -94,6 +95,6 @@ public abstract class AbstractCRCTest {
         CRC crc = supplier.apply(crcModel);
         crc.update(testInputLong, 0, testInputLong.length);
         long residue = computeResidue(crc, crcModel);
-        assertEquals(Long.toHexString(crcModel.getResidue()), Long.toHexString(residue));
+        assertEquals(toHexString(crcModel.getResidue()), toHexString(residue));
     }
 }
