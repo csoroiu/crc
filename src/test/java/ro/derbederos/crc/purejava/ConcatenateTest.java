@@ -24,7 +24,9 @@ public class ConcatenateTest {
     public ConcatenateTest(CRCModel crcModel) {
         this.crcModel = crcModel;
         long poly = reflect(crcModel.getPoly());
-        gfUtil64 = new GfUtil64(poly, crcModel.getWidth(), crcModel.getXorOut() != 0);
+        long init = reflect(crcModel.getInit());
+        long xorOut = reflect(crcModel.getXorOut());
+        gfUtil64 = new GfUtil64(poly, crcModel.getWidth(), init, xorOut);
         crc = CRCFactory.getCRC(crcModel);
     }
 
@@ -41,13 +43,13 @@ public class ConcatenateTest {
     @Test
     public void testCombine() {
         crc.reset();
-        crc.update("anaare10meremari".getBytes());
+        crc.update("alabalaportocala".getBytes());
         long crcExpected = crc.getValue();
         crc.reset();
-        crc.update("anaare".getBytes());
+        crc.update("alabala".getBytes());
         long crc1 = crc.getValue();
         crc.reset();
-        crc.update("10meremari".getBytes());
+        crc.update("portocala".getBytes());
         long crc2 = crc.getValue();
         long crcActual;
 
@@ -56,7 +58,7 @@ public class ConcatenateTest {
             crc2 = reflect(crc2);
         }
 
-        crcActual = gfUtil64.concatenate(crc1, crc2, 10);
+        crcActual = gfUtil64.concatenate(crc1, crc2, 9);
 
         if (!crcModel.getRefOut()) {
             crcActual = reflect(crcActual);
@@ -75,7 +77,7 @@ public class ConcatenateTest {
 //                .filter(crcModel -> crcModel.getWidth() <= 32)
 //                .filter(crcModel -> crcModel.getWidth() == 32)
 //                .filter(crcModel -> crcModel.getWidth() >= 32)
-                .filter(crcModel -> crcModel.getWidth() % 8 == 0)
+//                .filter(crcModel -> crcModel.getWidth() % 8 == 0)
 //                .filter(crcModel -> crcModel.getXorOut() == crcModel.getInit())
                 .collect(Collectors.toList());
     }

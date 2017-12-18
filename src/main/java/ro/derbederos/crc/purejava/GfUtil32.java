@@ -3,30 +3,25 @@ package ro.derbederos.crc.purejava;
 import static java.lang.Integer.compareUnsigned;
 
 class GfUtil32 {
-    private int canonize;
+    private int init;
+    private int xorOut;
     private int x_pow_2n[] = new int[Long.BYTES * 8];
     private int one;
     private int normalize[] = new int[2];
 
-    private int generatingPolynomial;
     private int crcOfCrc;
-    private int degree; //width of the CRC
 
-    public GfUtil32(int generatingPolynomial, int degree, boolean canonical) {
-        init(generatingPolynomial, degree, canonical);
+    public GfUtil32(int generatingPolynomial, int degree, int init, int xorOut) {
+        init(generatingPolynomial, degree, init, xorOut);
     }
 
-    private void init(int generatingPolynomial, int degree, boolean canonical) {
+    private void init(int generatingPolynomial, int degree, int init, int xorOut) {
         int one = 1;
         one <<= degree - 1;
-        this.generatingPolynomial = generatingPolynomial;
-        this.degree = degree;
         this.one = one;
-        if (canonical) {
-            this.canonize = one | (one - 1);
-        } else {
-            this.canonize = 0;
-        }
+        this.init = init;
+        this.xorOut = xorOut;
+
         this.normalize[0] = 0;
         this.normalize[1] = generatingPolynomial;
 
@@ -37,29 +32,14 @@ class GfUtil32 {
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = multiply(this.canonize,
+        this.crcOfCrc = multiply(this.xorOut,
                 this.one ^ XpowN(degree));
-    }
-
-    // Returns number of bits in CRC (degree of generating polynomial).
-    public int getDegree() {
-        return this.degree;
-    }
-
-    // Returns start/finish adjustment constant.
-    public long getCanonize() {
-        return this.canonize;
-    }
-
-    // Returns normalized value of 1.
-    public long one() {
-        return this.one;
     }
 
     // Returns value of CRC(A, |A|, start_new) given known
     // crc=CRC(A, |A|, start_old) -- without touching the data.
     private int changeStartValue(int crc, long bytes, int start_old, int start_new) {
-        return (crc ^ multiply(start_new ^ start_old, Xpow8N(bytes)));
+        return (crc ^ multiply(start_new ^ start_old ^ init ^ xorOut, Xpow8N(bytes)));
     }
 
     // Returns CRC of concatenation of blocks A and B when CRCs
@@ -73,8 +53,8 @@ class GfUtil32 {
 
     // Returns CRC of sequence of zeroes -- without touching the data.
     public int crcOfZeroes(long bytes, int start) {
-        int tmp = multiply(start ^ this.canonize, Xpow8N(bytes));
-        return (tmp ^ this.canonize);
+        int tmp = multiply(start ^ this.init, Xpow8N(bytes));
+        return (tmp ^ this.xorOut);
     }
 
     // Returns expected CRC value of CRC(Message,CRC(Message))
