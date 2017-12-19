@@ -2,13 +2,12 @@ package ro.derbederos.crc.purejava;
 
 final class CRC64Util {
     static long[] fastInitLookupTableReflected(long poly) {
-        long reflectedPoly = Long.reverse(poly);
         long[] lookupTable = new long[0x100];
         lookupTable[0] = 0;
-        lookupTable[0x80] = reflectedPoly;
-        long v = reflectedPoly;
+        lookupTable[0x80] = poly;
+        long v = poly;
         for (int i = 64; i != 0; i /= 2) {
-            v = (v >>> 1) ^ (reflectedPoly & ~((v & 1) - 1));
+            v = (v >>> 1) ^ (poly & ~((v & 1) - 1));
             lookupTable[i] = v;
         }
         for (int i = 2; i < 256; i *= 2) {
@@ -37,13 +36,12 @@ final class CRC64Util {
     }
 
     static long[] initLookupTableReflected(long poly) {
-        long reflectedPoly = Long.reverse(poly);
         long[] lookupTable = new long[0x100];
         for (int i = 0; i < 0x100; i++) {
             long v = i;
             for (int j = 0; j < 8; j++) {
                 if ((v & 1) == 1) {
-                    v = (v >>> 1) ^ reflectedPoly;
+                    v = (v >>> 1) ^ poly;
                 } else {
                     v = (v >>> 1);
                 }

@@ -1,10 +1,12 @@
 package ro.derbederos.crc.purejava;
 
+import ro.derbederos.crc.CRCModel;
+
 import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesReflected;
 import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesUnreflected;
 
 /**
- * Byte-wise CRC implementation that can compute CRC-64 using different models.
+ * Byte-wise CRC implementation that can compute CRC with width &lt;= 64 using different models.
  * It uses slicing-by-16 method (16 tables of 256 elements each).
  * We use the algorithm described by Michael E. Kounavis and Frank L. Berry in
  * "A Systematic Approach to Building High Performance, Software-based, CRC Generators",
@@ -14,12 +16,12 @@ public class CRC64SlicingBy16 extends CRC64 {
 
     protected final long[][] lookupTables;
 
-    public CRC64SlicingBy16(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
-        super(poly, init, refIn, refOut, xorOut);
-        if (refIn) {
-            lookupTables = initLookupTablesReflected(poly, 16);
+    public CRC64SlicingBy16(CRCModel crcModel) {
+        super(crcModel);
+        if (this.refIn) {
+            lookupTables = initLookupTablesReflected(this.poly, 16);
         } else {
-            lookupTables = initLookupTablesUnreflected(poly, 16);
+            lookupTables = initLookupTablesUnreflected(this.poly, 16);
         }
         lookupTables[0] = lookupTable;
     }

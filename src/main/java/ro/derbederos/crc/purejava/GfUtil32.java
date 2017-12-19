@@ -1,29 +1,42 @@
 package ro.derbederos.crc.purejava;
 
-import static java.lang.Integer.compareUnsigned;
+import ro.derbederos.crc.CRCModel;
 
+import static java.lang.Integer.compareUnsigned;
+import static java.lang.Integer.toUnsignedLong;
+import static java.lang.Long.reverse;
+
+/**
+ * Andrew Kadatch's and Bob Jenkins's gf_util functions from crcutil library
+ * (https://code.google.com/archive/p/crcutil/downloads).
+ */
 class GfUtil32 implements GfUtil {
     private int init;
-    private int xorOut;
+    private int canonize;
     private int x_pow_2n[] = new int[Long.BYTES * 8];
     private int one;
     private int normalize[] = new int[2];
 
     private long crcOfCrc;
 
-    public GfUtil32(int generatingPolynomial, int degree, int init, int xorOut) {
-        init(generatingPolynomial, degree, init, xorOut);
+    GfUtil32(CRCModel crcModel) {
+        int width = crcModel.getWidth();
+        long poly = reverse(crcModel.getPoly()) >>> (64 - width);
+        long init = reverse(crcModel.getInit()) >>> (64 - width);
+        long xorOut = reverse(crcModel.getXorOut()) >>> (64 - width);
+
+        init((int) poly, width, (int) init, (int) xorOut);
     }
 
-    private void init(int generatingPolynomial, int degree, int init, int xorOut) {
+    private void init(int poly, int degree, int init, int canonize) {
         int one = 1;
         one <<= degree - 1;
         this.one = one;
         this.init = init;
-        this.xorOut = xorOut;
+        this.canonize = canonize;
 
         this.normalize[0] = 0;
-        this.normalize[1] = generatingPolynomial;
+        this.normalize[1] = poly;
 
         int k = one >>> 1;
 
@@ -32,7 +45,7 @@ class GfUtil32 implements GfUtil {
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = multiply(this.xorOut, this.one ^ XpowN(degree)) & 0xFFFFFFFFL;
+        this.crcOfCrc = toUnsignedLong(multiply(this.canonize, this.one ^ XpowN(degree)));
     }
 
     /**
@@ -52,7 +65,8 @@ class GfUtil32 implements GfUtil {
      */
     @Override
     public long concatenate(long crc_A, long crc_B, long bytes_B) {
-        return (long) changeStartValue((int) crc_B, bytes_B, init ^ xorOut/* start_B */, (int) crc_A) & 0xFFFFFFFFL;
+        int result = changeStartValue((int) crc_B, bytes_B, init ^ canonize/* start_B */, (int) crc_A);
+        return toUnsignedLong(result);
     }
 
     /**
@@ -60,16 +74,16 @@ class GfUtil32 implements GfUtil {
      */
     @Override
     public long crcOfZeroes(long bytes, long start) {
-        int tmp = multiply((int) (start ^ this.xorOut), Xpow8N(bytes));
-        return (tmp ^ this.xorOut) & 0xFFFFFFFFL;
+        int tmp = multiply((int) (start ^ this.canonize), Xpow8N(bytes));
+        return toUnsignedLong(tmp ^ this.canonize);
     }
 
     /**
-   	 * Returns expected CRC value of {@code }CRC(Message,CRC(Message))
-   	 * when CRC is stored after the message. This value is fixed
-   	 * and does not depend on the message or CRC start value.
-   	 * This is also called <b>residue</b>.
-   	 */
+     * Returns expected CRC value of {@code CRC(Message,CRC(Message))}
+     * when CRC is stored after the message. This value is fixed
+     * and does not depend on the message or CRC start value.
+     * This is also called <b>residue</b>.
+     */
     @Override
     public long getCrcOfCrc() {
         return this.crcOfCrc;

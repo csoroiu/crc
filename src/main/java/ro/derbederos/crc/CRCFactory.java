@@ -1,7 +1,7 @@
 package ro.derbederos.crc;
 
-import ro.derbederos.crc.purejava.CRC32Generic;
-import ro.derbederos.crc.purejava.CRC64Generic;
+import ro.derbederos.crc.purejava.CRC32SlicingBy8;
+import ro.derbederos.crc.purejava.CRC64SlicingBy16;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -114,8 +114,8 @@ public class CRCFactory {
     /**
      * Returns the most appropriate, usually the fastest, CRC checksum calculator based on the defined model name.
      *
-     * @param modelName the name of the model
-     * @return
+     * @param modelName the name of the {@link CRCModel}
+     * @return the most appropriate, usually the fastest, CRC checksum calculator based on the defined model name.
      */
     public static Checksum getCRC(String modelName) {
         CRCModel crcModel = getModel(modelName);
@@ -128,8 +128,8 @@ public class CRCFactory {
     /**
      * Returns the most appropriate, usually the fastest, CRC checksum calculator based on the model input.
      *
-     * @param model
-     * @return
+     * @param model the {@link CRCModel}
+     * @return the most appropriate, usually the fastest, CRC checksum calculator based on the model input.
      */
     public static Checksum getCRC(CRCModel model) {
         if (isAlias(CRC32, model)) {
@@ -137,9 +137,9 @@ public class CRCFactory {
         } else if (javaCrc32cAvailable && isAlias(CRC32C, model)) {
             return new java.util.zip.CRC32C();
         } else if (model.getWidth() <= 32) {
-            return createCrc32(model);
+            return new CRC32SlicingBy8(model);
         } else if (model.getWidth() <= 64) {
-            return createCrc64(model);
+            return new CRC64SlicingBy16(model);
         }
         throw new IllegalArgumentException("CRCFactory: Cannot find a generator for model " + model.getName());
     }
@@ -153,23 +153,4 @@ public class CRCFactory {
                 reference.getXorOut() == input.getXorOut());
     }
 
-    private static CRC createCrc32(CRCModel crcModel) {
-        return new CRC32Generic(
-                crcModel.getWidth(),
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
-    }
-
-    private static CRC createCrc64(CRCModel crcModel) {
-        return new CRC64Generic(
-                crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                crcModel.getXorOut());
-    }
 }

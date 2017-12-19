@@ -1,46 +1,55 @@
 package ro.derbederos.crc.purejava;
 
 import ro.derbederos.crc.CRC;
+import ro.derbederos.crc.CRCModel;
 
+import static java.lang.Long.reverse;
 import static ro.derbederos.crc.purejava.CRC64Util.fastInitLookupTableReflected;
 import static ro.derbederos.crc.purejava.CRC64Util.fastInitLookupTableUnreflected;
 
 /**
- * Byte-wise CRC implementation that can compute CRC-64 using different models.
+ * Byte-wise CRC implementation that can compute CRC with width &lt;= 64 using different models.
  * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
  * via Table Look-Up", 1988
  */
 public class CRC64 implements CRC {
 
+    protected final CRCModel crcModel;
     protected final long[] lookupTable;
+    protected final int width;
     protected final long poly;
     protected final long init;
     protected final boolean refIn; // reflect input data bytes
     protected final boolean refOut; // resulted sum needs to be reversed before xor
-    protected final long xorOut;
     protected long crc;
 
-    public CRC64(long poly, long init, boolean refIn, boolean refOut, long xorOut) {
-        this.poly = poly;
-        this.init = init;
-        this.refIn = refIn;
-        this.refOut = refOut;
-        this.xorOut = xorOut;
-        if (refIn) {
-            lookupTable = fastInitLookupTableReflected(poly);
+    public CRC64(CRCModel crcModel) {
+        this.crcModel = crcModel;
+        this.width = crcModel.getWidth();
+        this.refIn = crcModel.getRefIn();
+        this.refOut = crcModel.getRefOut();
+        long poly = crcModel.getPoly() << 64 - width;
+        long init = crcModel.getInit() << 64 - width;
+        if (this.refIn) {
+            this.poly = reverse(poly);
+            this.init = reverse(init);
+            this.lookupTable = fastInitLookupTableReflected(this.poly);
         } else {
-            lookupTable = fastInitLookupTableUnreflected(poly);
+            this.poly = poly;
+            this.init = init;
+            this.lookupTable = fastInitLookupTableUnreflected(this.poly);
         }
         reset();
     }
 
     @Override
+    public CRCModel getCRCModel() {
+        return crcModel;
+    }
+
+    @Override
     public void reset() {
-        if (refIn) {
-            crc = Long.reverse(init);
-        } else {
-            crc = init;
-        }
+        crc = init;
     }
 
     @Override
@@ -83,10 +92,9 @@ public class CRC64 implements CRC {
 
     @Override
     public void updateBits(int b, int bits) {
-        long reflectedPoly = Long.reverse(poly);
         for (int i = 0; i < bits; i++) {
             if (refIn) {
-                crc = (crc >>> 1) ^ (reflectedPoly & ~(((crc ^ b) & 1) - 1));
+                crc = (crc >>> 1) ^ (poly & ~(((crc ^ b) & 1) - 1));
                 b >>>= 1;
             } else {
                 crc = (crc << 1) ^ (poly & ~((((crc >>> 63) ^ (b >>> 7)) & 1) - 1));
@@ -100,9 +108,12 @@ public class CRC64 implements CRC {
         long result = crc;
         //reflect output when necessary
         if (refOut != refIn) {
-            result = Long.reverse(crc);
+            result = reverse(crc);
         }
-        result = (result ^ xorOut);
+        if (!refOut) {
+            result >>>= 64 - width;
+        }
+        result = result ^ crcModel.getXorOut();
         return result;
     }
 }

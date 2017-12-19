@@ -3,7 +3,6 @@ package ro.derbederos.crc.purejava;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import ro.derbederos.crc.AbstractCRCTest;
-import ro.derbederos.crc.CRC;
 import ro.derbederos.crc.CRCFactory;
 import ro.derbederos.crc.CRCModel;
 
@@ -15,22 +14,13 @@ import java.util.stream.Collectors;
 public class CRC32Test extends AbstractCRCTest {
 
     public CRC32Test(CRCModel crcModel) {
-        super(crcModel, CRC32Test::createCrc);
-    }
-
-    private static CRC createCrc(CRCModel crcModel) {
-        return new CRC32(
-                (int) crcModel.getPoly(),
-                (int) crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                (int) crcModel.getXorOut());
+        super(crcModel, CRC32::new);
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static List<CRCModel> getCRCParameters() {
         return Arrays.stream(CRCFactory.getDefinedModels())
-                .filter(crcModel -> crcModel.getWidth() == 32)
+                .filter(crcModel -> crcModel.getWidth() <= 32)
                 .collect(Collectors.toList());
     }
 }

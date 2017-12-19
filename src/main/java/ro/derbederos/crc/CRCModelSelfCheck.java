@@ -1,6 +1,6 @@
 package ro.derbederos.crc;
 
-import ro.derbederos.crc.purejava.CRC64Generic;
+import ro.derbederos.crc.purejava.CRC64SlicingBy16;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -30,26 +30,14 @@ public class CRCModelSelfCheck {
     }
 
     public static boolean validateCRCValue(CRCModel crcModel) {
-        CRC crc = new CRC64Generic(
-                crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                crcModel.getXorOut());
+        CRC crc = new CRC64SlicingBy16(crcModel);
         crc.update(testInput, 0, testInput.length);
         long value = crc.getValue();
         return value == crcModel.getCheck();
     }
 
     public static boolean validateCRCResidue(CRCModel crcModel) {
-        CRC crc = new CRC64Generic(
-                crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                crcModel.getXorOut());
+        CRC crc = new CRC64SlicingBy16(crcModel);
         return computeResidue(crc, crcModel) == crcModel.getResidue();
     }
 

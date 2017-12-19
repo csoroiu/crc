@@ -2,8 +2,10 @@ package ro.derbederos.crc;
 
 import java.util.Objects;
 
+import static java.lang.Long.toHexString;
+
 /**
- * Ross N. Williams compatible CRC definition model (http://www.ross.net/crc/download/crc_v3.txt)
+ * Ross N. Williams compatible CRC definition model (http://www.ross.net/crc/download/crc_v3.txt).
  */
 public final class CRCModel {
     private final String name;
@@ -87,13 +89,13 @@ public final class CRCModel {
         return "CRCModel{" +
                 "name='" + name + '\'' +
                 ", width=" + width +
-                ", poly=" + "0x" + Long.toHexString(poly) +
-                ", init=" + "0x" + Long.toHexString(init) +
+                ", poly=" + "0x" + toHexString(poly) +
+                ", init=" + "0x" + toHexString(init) +
                 ", refIn=" + refIn +
                 ", refOut=" + refOut +
-                ", xorOut=" + "0x" + Long.toHexString(xorOut) +
-                ", check=" + "0x" + Long.toHexString(check) +
-                ", residue=" + "0x" + Long.toHexString(residue) +
+                ", xorOut=" + "0x" + toHexString(xorOut) +
+                ", check=" + "0x" + toHexString(check) +
+                ", residue=" + "0x" + toHexString(residue) +
                 '}';
     }
 }

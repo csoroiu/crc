@@ -1,5 +1,9 @@
 package ro.derbederos.crc.purejava;
 
+/**
+ * Andrew Kadatch's and Bob Jenkins's gf_util functions from crcutil library
+ * (https://code.google.com/archive/p/crcutil/downloads).
+ */
 interface GfUtil {
 
     /**
@@ -17,7 +21,7 @@ interface GfUtil {
     long crcOfZeroes(long bytes, long start);
 
     /**
-     * Returns expected CRC value of {@code }CRC(Message,CRC(Message))
+     * Returns expected CRC value of {@code CRC(Message,CRC(Message))}
      * when CRC is stored after the message. This value is fixed
      * and does not depend on the message or CRC start value.
      * This is also called <b>residue</b>.

@@ -1,5 +1,7 @@
 package ro.derbederos.crc.purejava;
 
+import ro.derbederos.crc.CRCModel;
+
 import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesReflected;
 import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
 
@@ -14,12 +16,12 @@ public class CRC32SlicingBy8 extends CRC32 {
 
     protected final int[][] lookupTables;
 
-    public CRC32SlicingBy8(int poly, int init, boolean refIn, boolean refOut, int xorOut) {
-        super(poly, init, refIn, refOut, xorOut);
-        if (refIn) {
-            lookupTables = initLookupTablesReflected(poly, 8);
+    public CRC32SlicingBy8(CRCModel crcModel) {
+        super(crcModel);
+        if (this.refIn) {
+            lookupTables = initLookupTablesReflected(this.poly, 8);
         } else {
-            lookupTables = initLookupTablesUnreflected(poly, 8);
+            lookupTables = initLookupTablesUnreflected(this.poly, 8);
         }
         lookupTables[0] = lookupTable;
     }

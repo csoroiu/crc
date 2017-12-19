@@ -1,29 +1,41 @@
 package ro.derbederos.crc.purejava;
 
-import static java.lang.Long.compareUnsigned;
+import ro.derbederos.crc.CRCModel;
 
+import static java.lang.Long.compareUnsigned;
+import static java.lang.Long.reverse;
+
+/**
+ * Andrew Kadatch's and Bob Jenkins's gf_util functions from crcutil library
+ * (https://code.google.com/archive/p/crcutil/downloads).
+ */
 class GfUtil64 implements GfUtil {
     private long init;
-    private long xorOut;
+    private long canonize;
     private long x_pow_2n[] = new long[Long.BYTES * 8];
     private long one;
     private long normalize[] = new long[2];
 
     private long crcOfCrc;
 
-    GfUtil64(long generatingPolynomial, int degree, long init, long xorOut) {
-        init(generatingPolynomial, degree, init, xorOut);
+    GfUtil64(CRCModel crcModel) {
+        int width = crcModel.getWidth();
+        long poly = reverse(crcModel.getPoly()) >>> (64 - width);
+        long init = reverse(crcModel.getInit()) >>> (64 - width);
+        long xorOut = reverse(crcModel.getXorOut()) >>> (64 - width);
+
+        init(poly, width, init, xorOut);
     }
 
-    private void init(long generatingPolynomial, int degree, long init, long xorOut) {
+    private void init(long poly, int degree, long init, long canonize) {
         long one = 1;
         one <<= degree - 1;
         this.one = one;
         this.init = init;
-        this.xorOut = xorOut;
+        this.canonize = canonize;
 
         this.normalize[0] = 0;
-        this.normalize[1] = generatingPolynomial;
+        this.normalize[1] = poly;
 
         long k = one >>> 1;
 
@@ -32,7 +44,7 @@ class GfUtil64 implements GfUtil {
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = multiply(this.xorOut, this.one ^ XpowN(degree));
+        this.crcOfCrc = multiply(this.canonize, this.one ^ XpowN(degree));
     }
 
     /**
@@ -52,7 +64,7 @@ class GfUtil64 implements GfUtil {
      */
     @Override
     public long concatenate(long crc_A, long crc_B, long bytes_B) {
-        return changeStartValue(crc_B, bytes_B, init ^ xorOut /* start_B */, crc_A);
+        return changeStartValue(crc_B, bytes_B, init ^ canonize /* start_B */, crc_A);
     }
 
     /**
@@ -60,12 +72,12 @@ class GfUtil64 implements GfUtil {
      */
     @Override
     public long crcOfZeroes(long bytes, long start) {
-        long tmp = multiply(start ^ xorOut, Xpow8N(bytes));
-        return (tmp ^ xorOut);
+        long tmp = multiply(start ^ canonize, Xpow8N(bytes));
+        return (tmp ^ canonize);
     }
 
     /**
-     * Returns expected CRC value of {@code }CRC(Message,CRC(Message))
+     * Returns expected CRC value of {@code CRC(Message,CRC(Message))}
      * when CRC is stored after the message. This value is fixed
      * and does not depend on the message or CRC start value.
      * This is also called <b>residue</b>.

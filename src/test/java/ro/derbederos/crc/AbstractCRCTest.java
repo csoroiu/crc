@@ -1,7 +1,7 @@
 package ro.derbederos.crc;
 
 import org.junit.Test;
-import ro.derbederos.crc.purejava.CRC64Generic;
+import ro.derbederos.crc.purejava.CRC64SlicingBy16;
 
 import java.util.Random;
 import java.util.function.Function;
@@ -63,13 +63,7 @@ public abstract class AbstractCRCTest {
     @Test
     public void testCRCValueLongAndUnaligned() {
         Checksum checksum = supplier.apply(crcModel);
-        Checksum checksumSliceBy16 = new CRC64Generic(
-                crcModel.getWidth(),
-                crcModel.getPoly(),
-                crcModel.getInit(),
-                crcModel.getRefIn(),
-                crcModel.getRefOut(),
-                crcModel.getXorOut());
+        Checksum checksumSliceBy16 = new CRC64SlicingBy16(crcModel);
 
         for (int i = 0; i < 16; i++) {
             checksumSliceBy16.reset();

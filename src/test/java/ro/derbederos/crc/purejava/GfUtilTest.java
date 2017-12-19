@@ -36,10 +36,7 @@ public class GfUtilTest {
 
     public GfUtilTest(CRCModel crcModel) {
         this.crcModel = crcModel;
-        long poly = reflect(crcModel, crcModel.getPoly());
-        long init = reflect(crcModel, crcModel.getInit());
-        long xorOut = reflect(crcModel, crcModel.getXorOut());
-        gfUtil = new GfUtil32((int) poly, crcModel.getWidth(), (int) init, (int) xorOut);
+        gfUtil = new GfUtil64(crcModel);
         crc = CRCFactory.getCRC(crcModel);
     }
 
@@ -119,8 +116,8 @@ public class GfUtilTest {
         return checksum.getValue();
     }
 
-    private static long reflect(CRCModel crcModel, long crc) {
-        return Long.reverse(crc) >>> (64 - crcModel.getWidth());
+    private static long reflect(CRCModel crcModel, long value) {
+        return Long.reverse(value) >>> (64 - crcModel.getWidth());
     }
 
     @Parameterized.Parameters(name = "{0}")

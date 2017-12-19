@@ -1,7 +1,9 @@
 package ro.derbederos.crc.purejava;
 
 import ro.derbederos.crc.CRC;
+import ro.derbederos.crc.CRCModel;
 
+import static java.lang.Integer.reverse;
 import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableReflected;
 import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableUnreflected;
 
@@ -12,35 +14,42 @@ import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableUnreflecte
  */
 public class CRC32 implements CRC {
 
+    protected final CRCModel crcModel;
     protected final int[] lookupTable;
+    protected final int width;
     protected final int poly;
     protected final int init;
     protected final boolean refIn; // reflect input data bytes
     protected final boolean refOut; // resulted sum needs to be reversed before xor
-    protected final int xorOut;
     protected int crc;
 
-    public CRC32(int poly, int init, boolean refIn, boolean refOut, int xorOut) {
-        this.poly = poly;
-        this.init = init;
-        this.refIn = refIn;
-        this.refOut = refOut;
-        this.xorOut = xorOut;
-        if (refIn) {
-            lookupTable = fastInitLookupTableReflected(poly);
+    public CRC32(CRCModel crcModel) {
+        this.crcModel = crcModel;
+        this.width = crcModel.getWidth();
+        this.refIn = crcModel.getRefIn();
+        this.refOut = crcModel.getRefOut();
+        int poly = (int) crcModel.getPoly() << 32 - width;
+        int init = (int) crcModel.getInit() << 32 - width;
+        if (this.refIn) {
+            this.poly = reverse(poly);
+            this.init = reverse(init);
+            this.lookupTable = fastInitLookupTableReflected(this.poly);
         } else {
-            lookupTable = fastInitLookupTableUnreflected(poly);
+            this.poly = poly;
+            this.init = init;
+            this.lookupTable = fastInitLookupTableUnreflected(this.poly);
         }
         reset();
     }
 
     @Override
+    public CRCModel getCRCModel() {
+        return crcModel;
+    }
+
+    @Override
     public void reset() {
-        if (refIn) {
-            crc = Integer.reverse(init);
-        } else {
-            crc = init;
-        }
+        crc = init;
     }
 
     @Override
@@ -83,10 +92,9 @@ public class CRC32 implements CRC {
 
     @Override
     public void updateBits(int b, int bits) {
-        int reflectedPoly = Integer.reverse(poly);
         for (int i = 0; i < bits; i++) {
             if (refIn) {
-                crc = (crc >>> 1) ^ (reflectedPoly & ~(((crc ^ b) & 1) - 1));
+                crc = (crc >>> 1) ^ (poly & ~(((crc ^ b) & 1) - 1));
                 b >>>= 1;
             } else {
                 crc = (crc << 1) ^ (poly & ~((((crc >>> 31) ^ (b >>> 7)) & 1) - 1));
@@ -100,9 +108,13 @@ public class CRC32 implements CRC {
         long result = crc;
         //reflect output when necessary
         if (refOut != refIn) {
-            result = Integer.reverse(crc);
+            result = reverse(crc);
         }
-        result = (result ^ xorOut) & 0xFFFFFFFFL;
+        result &= 0xFFFFFFFFL;
+        if (!refOut) {
+            result >>>= 32 - width;
+        }
+        result = result ^ crcModel.getXorOut();
         return result;
     }
 }

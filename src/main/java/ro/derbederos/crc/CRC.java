@@ -4,6 +4,8 @@ import java.util.zip.Checksum;
 
 public interface CRC extends Checksum {
 
+    CRCModel getCRCModel();
+
     void updateBits(int b, int bits);
 
     default void updateBits(byte[] b, int off, int bits) {
@@ -13,4 +15,11 @@ public interface CRC extends Checksum {
             updateBits(b[len], bits - (len << 3));
         }
     }
+
+//    long concatenate(long crc_A, long crc_B, long bytes_B);
+//
+//    default long combine(long crc_A, long crc_B, long bytes_B) {
+//        return concatenate(crc_A, crc_B, bytes_B);
+//    }
+
 }
