@@ -48,4 +48,10 @@ public class CRCFactoryTest {
         Checksum crc = CRCFactory.getCRC("CRC-32C");
         assertFalse(crc instanceof CRC);
     }
+
+    @Test
+    public void testGetJAMCRC() {
+        Checksum crc = CRCFactory.getCRC("JAMCRC");
+        assertTrue(crc instanceof CRC);
+    }
 }

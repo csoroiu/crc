@@ -2,14 +2,14 @@ package ro.derbederos.crc.purejava;
 
 import static java.lang.Integer.compareUnsigned;
 
-class GfUtil32 {
+class GfUtil32 implements GfUtil {
     private int init;
     private int xorOut;
     private int x_pow_2n[] = new int[Long.BYTES * 8];
     private int one;
     private int normalize[] = new int[2];
 
-    private int crcOfCrc;
+    private long crcOfCrc;
 
     public GfUtil32(int generatingPolynomial, int degree, int init, int xorOut) {
         init(generatingPolynomial, degree, init, xorOut);
@@ -32,39 +32,52 @@ class GfUtil32 {
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = multiply(this.xorOut,
-                this.one ^ XpowN(degree));
+        this.crcOfCrc = multiply(this.xorOut, this.one ^ XpowN(degree)) & 0xFFFFFFFFL;
     }
 
-    // Returns value of CRC(A, |A|, start_new) given known
-    // crc=CRC(A, |A|, start_old) -- without touching the data.
+    /**
+     * Returns value of CRC(A, |A|, start_new) given known
+     * crc=CRC(A, |A|, start_old) -- without touching the data.
+     */
     private int changeStartValue(int crc, long bytes, int start_old, int start_new) {
-        return (crc ^ multiply(start_new ^ start_old ^ init ^ xorOut, Xpow8N(bytes)));
+        return (crc ^ multiply(start_new ^ start_old, Xpow8N(bytes)));
     }
 
-    // Returns CRC of concatenation of blocks A and B when CRCs
-    // of blocks A and B are known -- without touching the data.
-    //
-    // To be precise, given CRC(A, |A|, startA) and CRC(B, |B|, 0),
-    // returns CRC(AB, |AB|, startA).
-    public int concatenate(int crc_A, int crc_B, long bytes_B) {
-        return changeStartValue(crc_B, bytes_B, 0 /* start_B */, crc_A);
+    /**
+     * Returns CRC of concatenation of blocks A and B when CRCs
+     * of blocks A and B are known -- without touching the data.
+     * <p>
+     * To be precise, given CRC(A, |A|, startA) and CRC(B, |B|, 0),
+     * returns CRC(AB, |AB|, startA).
+     */
+    @Override
+    public long concatenate(long crc_A, long crc_B, long bytes_B) {
+        return (long) changeStartValue((int) crc_B, bytes_B, init ^ xorOut/* start_B */, (int) crc_A) & 0xFFFFFFFFL;
     }
 
-    // Returns CRC of sequence of zeroes -- without touching the data.
-    public int crcOfZeroes(long bytes, int start) {
-        int tmp = multiply(start ^ this.init, Xpow8N(bytes));
-        return (tmp ^ this.xorOut);
+    /**
+     * Returns CRC of sequence of zeroes -- without touching the data.
+     */
+    @Override
+    public long crcOfZeroes(long bytes, long start) {
+        int tmp = multiply((int) (start ^ this.xorOut), Xpow8N(bytes));
+        return (tmp ^ this.xorOut) & 0xFFFFFFFFL;
     }
 
-    // Returns expected CRC value of CRC(Message,CRC(Message))
-    // when CRC is stored after the message. This value is fixed
-    // and does not depend on the message or CRC start value.
+    /**
+   	 * Returns expected CRC value of {@code }CRC(Message,CRC(Message))
+   	 * when CRC is stored after the message. This value is fixed
+   	 * and does not depend on the message or CRC start value.
+   	 * This is also called <b>residue</b>.
+   	 */
+    @Override
     public long getCrcOfCrc() {
         return this.crcOfCrc;
     }
 
-    // Returns (x ** (8 * n) mod P).
+    /**
+     * Returns (x ** (8 * n) mod P).
+     */
     private int Xpow8N(long n) {
         return XpowN(n << 3);
     }

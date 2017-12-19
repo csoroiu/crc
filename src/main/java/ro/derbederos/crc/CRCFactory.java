@@ -150,7 +150,7 @@ public class CRCFactory {
                 reference.getInit() == input.getInit() &&
                 reference.getRefIn() == input.getRefIn() &&
                 reference.getRefOut() == input.getRefOut() &&
-                reference.getXorOut() == reference.getXorOut());
+                reference.getXorOut() == input.getXorOut());
     }
 
     private static CRC createCrc32(CRCModel crcModel) {
