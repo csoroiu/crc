@@ -27,12 +27,16 @@ public class CRC32 implements CRC {
 
     public CRC32(CRCModel crcModel) {
         this.crcModel = crcModel;
-        this.gfUtil = new GfUtil32(crcModel);
         this.width = crcModel.getWidth();
         this.refIn = crcModel.getRefIn();
         this.refOut = crcModel.getRefOut();
         int poly = (int) crcModel.getPoly() << 32 - width;
         int init = (int) crcModel.getInit() << 32 - width;
+        GfUtil gfUtil = new GfUtil32Reflected(crcModel);
+        if (!refOut) {
+            gfUtil = new GfUtilUnreflected(gfUtil, width);
+        }
+        this.gfUtil = gfUtil;
         if (this.refIn) {
             this.poly = reverse(poly);
             this.init = reverse(init);
@@ -135,29 +139,16 @@ public class CRC32 implements CRC {
 
     @Override
     public long getCrcOfCrc() {
-        return reflectIfNeeded(gfUtil.getCrcOfCrc()) ^ crcModel.getXorOut();
+        return gfUtil.getCrcOfCrc() ^ crcModel.getXorOut();
     }
 
     @Override
     public long concatenate(long crcA, long crcB, long bytesB) {
-        return reflectIfNeeded(gfUtil.concatenate(reflectIfNeeded(crcA), reflectIfNeeded(crcB), bytesB));
+        return gfUtil.concatenate(crcA, crcB, bytesB);
     }
 
     @Override
     public long concatenateZeroes(long crcA, long bytesB) {
-        return reflectIfNeeded(gfUtil.crcOfZeroes(bytesB, reflectIfNeeded(crcA)));
+        return gfUtil.crcOfZeroes(bytesB, crcA);
     }
-
-    private long reflectIfNeeded(long value) {
-        if (!refOut) {
-            return reflect(value);
-        } else {
-            return value;
-        }
-    }
-
-    private long reflect(long value) {
-        return Long.reverse(value) >>> (64 - width);
-    }
-
 }

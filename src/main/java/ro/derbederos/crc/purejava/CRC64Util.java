@@ -1,5 +1,8 @@
 package ro.derbederos.crc.purejava;
 
+/**
+ * https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation
+ */
 final class CRC64Util {
     static long[] fastInitLookupTableReflected(long poly) {
         long[] lookupTable = new long[0x100];

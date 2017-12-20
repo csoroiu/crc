@@ -9,7 +9,10 @@ import ro.derbederos.crc.CRCModel;
 import java.util.Arrays;
 import java.util.List;
 
+import static java.lang.Integer.reverse;
+import static java.lang.Integer.toHexString;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
 public class CRC32UtilTest {
@@ -17,6 +20,19 @@ public class CRC32UtilTest {
 
     public CRC32UtilTest(CRCModel crcModel) {
         this.crcModel = crcModel;
+    }
+
+    @Test
+    public void testReflectedVsUnreflected() {
+        int poly = (int) crcModel.getPoly();
+        int reflectedPoly = reverse(poly);
+        int[] lookupTableReflected = CRC32Util.initLookupTableReflected(reflectedPoly);
+        int[] lookupTableUnreflected = CRC32Util.initLookupTableUnreflected(poly);
+        for (int i = 0; i < 256; i++) {
+            int expected = reverse(lookupTableReflected[i]);
+            int actual = lookupTableUnreflected[reverse(i) >>> 24];
+            assertEquals("at iteration " + i, toHexString(expected), toHexString(actual));
+        }
     }
 
     @Test

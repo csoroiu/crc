@@ -2,55 +2,61 @@ package ro.derbederos.crc.purejava;
 
 import ro.derbederos.crc.CRCModel;
 
-import static java.lang.Long.compareUnsigned;
+import static java.lang.Integer.compareUnsigned;
+import static java.lang.Integer.toUnsignedLong;
 import static java.lang.Long.reverse;
 
 /**
  * Andrew Kadatch's and Bob Jenkins's gf_util functions from crcutil library
  * (https://code.google.com/archive/p/crcutil/downloads).
  */
-class GfUtil64 implements GfUtil {
+class GfUtil32Reflected implements GfUtil {
 
     private final int degree;
-    private final long init;
-    private final long canonize;
-    private long x_pow_2n[] = new long[Long.BYTES * 8];
-    private long one;
-    private long normalize[] = new long[2];
+    private final int init;
+    private final int canonize;
+    private int x_pow_2n[] = new int[Long.BYTES * 8];
+    private int one;
+    private int normalize[] = new int[2];
 
     private long crcOfCrc;
 
-    GfUtil64(CRCModel crcModel) {
+    GfUtil32Reflected(CRCModel crcModel) {
         degree = crcModel.getWidth();
-        long poly = reverse(crcModel.getPoly()) >>> (64 - degree);
-        init = reverse(crcModel.getInit()) >>> (64 - degree);
-        canonize = reverse(crcModel.getXorOut()) >>> (64 - degree);
+        int poly = (int) (reverse(crcModel.getPoly()) >>> (64 - degree));
+        init = (int) (reverse(crcModel.getInit()) >>> (64 - degree));
+        canonize = (int) (reverse(crcModel.getXorOut()) >>> (64 - degree));
         init(poly);
     }
 
-    private void init(long poly) {
-        long one = 1;
+    /**
+     * Initializes the tables given generating polynomial of degree (degree).
+     * If "canonical" is true, starting CRC value and computed CRC value will be
+     * XOR-ed with 111...111.
+     */
+    private void init(int poly) {
+        int one = 1;
         one <<= degree - 1;
         this.one = one;
 
         this.normalize[0] = 0;
         this.normalize[1] = poly;
 
-        long k = one >>> 1;
+        int k = one >>> 1;
 
         for (int i = 0; i < x_pow_2n.length; i++) {
             this.x_pow_2n[i] = k;
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = multiply(this.canonize, this.one ^ XpowN(degree));
+        this.crcOfCrc = toUnsignedLong(multiply(this.canonize, this.one ^ XpowN(degree)));
     }
 
     /**
      * Returns value of CRC(A, |A|, start_new) given known
      * crc=CRC(A, |A|, start_old) -- without touching the data.
      */
-    private long changeStartValue(long crc, long bytes, long start_old, long start_new) {
+    private int changeStartValue(int crc, long bytes, int start_old, int start_new) {
         return (crc ^ multiply(start_new ^ start_old, Xpow8N(bytes)));
     }
 
@@ -63,7 +69,8 @@ class GfUtil64 implements GfUtil {
      */
     @Override
     public long concatenate(long crc_A, long crc_B, long bytes_B) {
-        return changeStartValue(crc_B, bytes_B, init ^ canonize /* start_B */, crc_A);
+        int result = changeStartValue((int) crc_B, bytes_B, init ^ canonize/* start_B */, (int) crc_A);
+        return toUnsignedLong(result);
     }
 
     /**
@@ -71,8 +78,8 @@ class GfUtil64 implements GfUtil {
      */
     @Override
     public long crcOfZeroes(long bytes, long start) {
-        long tmp = multiply(start ^ canonize, Xpow8N(bytes));
-        return tmp ^ canonize;
+        int tmp = multiply((int) (start ^ this.canonize), Xpow8N(bytes));
+        return toUnsignedLong(tmp ^ this.canonize);
     }
 
     /**
@@ -89,13 +96,16 @@ class GfUtil64 implements GfUtil {
     /**
      * Returns (x ** (8 * n) mod P).
      */
-    private long Xpow8N(long n) {
+    private int Xpow8N(long n) {
         //works for N < 0x2000000000000000L
         return XpowN(n << 3);
     }
 
-    private long XpowN(long n) {
-        long result = this.one;
+    /**
+     * Returns (x ** n mod P).
+     */
+    private int XpowN(long n) {
+        int result = this.one;
 
         for (int i = 0; n != 0; i++, n >>>= 1) {
             if ((n & 1) != 0) {
@@ -105,11 +115,14 @@ class GfUtil64 implements GfUtil {
         return result;
     }
 
-    private long multiply(long aa, long bb) {
-        long a = aa;
-        long b = bb;
+    /**
+     * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
+     */
+    private int multiply(int aa, int bb) {
+        int a = aa;
+        int b = bb;
         if (compareUnsigned(a ^ (a - 1), b ^ (b - 1)) < 0) {
-            long temp = a;
+            int temp = a;
             a = b;
             b = temp;
         }
@@ -118,15 +131,33 @@ class GfUtil64 implements GfUtil {
             return a;
         }
 
-        long product = 0;
-        long one = this.one;
+        int product = 0;
+        int one = this.one;
         for (; a != 0; a <<= 1) {
             if ((a & one) != 0) {
                 product ^= b;
                 a ^= one;
             }
-            b = (b >>> 1) ^ this.normalize[(int) (b & 1)];
+            b = (b >>> 1) ^ this.normalize[b & 1];
         }
         return product;
+    }
+
+    /**
+     * Returns ((unnorm * m) mod P) where degree of m is <= (D-1)
+     * and degree of value "unnorm" is provided explicitly.
+     */
+    private int multiplyUnnormalized(int unnorm, int degree, int m) {
+        int ones = this.one | (this.one - 1);
+        int v = unnorm;
+        int result = 0;
+        while (degree > this.degree) {
+            degree -= this.degree;
+            int value = v & ones;
+            result ^= multiply(value, multiply(m, XpowN(degree)));
+            v >>>= this.degree;
+        }
+        result ^= multiply(v << (this.degree - degree), m);
+        return result;
     }
 }
