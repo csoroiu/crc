@@ -15,6 +15,7 @@ import static ro.derbederos.crc.purejava.CRC64Util.fastInitLookupTableUnreflecte
 public class CRC64 implements CRC {
 
     protected final CRCModel crcModel;
+    protected final GfUtil gfUtil;
     protected final long[] lookupTable;
     protected final int width;
     protected final long poly;
@@ -25,6 +26,7 @@ public class CRC64 implements CRC {
 
     public CRC64(CRCModel crcModel) {
         this.crcModel = crcModel;
+        this.gfUtil = new GfUtil64(crcModel);
         this.width = crcModel.getWidth();
         this.refIn = crcModel.getRefIn();
         this.refOut = crcModel.getRefOut();
@@ -108,7 +110,7 @@ public class CRC64 implements CRC {
         long result = crc;
         //reflect output when necessary
         if (refOut != refIn) {
-            result = reverse(crc);
+            result = reverse(result);
         }
         if (!refOut) {
             result >>>= 64 - width;
@@ -116,4 +118,45 @@ public class CRC64 implements CRC {
         result = result ^ crcModel.getXorOut();
         return result;
     }
+
+    @Override
+    public void setValue(long crc) {
+        long result = crc ^ crcModel.getXorOut();
+        if (!refOut) {
+            result <<= 64 - width;
+        }
+        //reflect output when necessary
+        if (refOut != refIn) {
+            result = reverse(result);
+        }
+        this.crc = result;
+    }
+
+    @Override
+    public long getCrcOfCrc() {
+        return reflectIfNeeded(gfUtil.getCrcOfCrc()) ^ crcModel.getXorOut();
+    }
+
+    @Override
+    public long concatenate(long crcA, long crcB, long bytesB) {
+        return reflectIfNeeded(gfUtil.concatenate(reflectIfNeeded(crcA), reflectIfNeeded(crcB), bytesB));
+    }
+
+    @Override
+    public long concatenateZeroes(long crcA, long bytesB) {
+        return reflectIfNeeded(gfUtil.crcOfZeroes(bytesB, reflectIfNeeded(crcA)));
+    }
+
+    private long reflectIfNeeded(long value) {
+        if (!refOut) {
+            return reflect(value);
+        } else {
+            return value;
+        }
+    }
+
+    private long reflect(long value) {
+        return Long.reverse(value) >>> (64 - width);
+    }
+
 }

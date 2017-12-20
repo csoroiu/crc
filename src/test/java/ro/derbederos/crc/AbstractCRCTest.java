@@ -1,5 +1,6 @@
 package ro.derbederos.crc;
 
+import org.junit.Assert;
 import org.junit.Test;
 import ro.derbederos.crc.purejava.CRC64SlicingBy16;
 
@@ -13,6 +14,9 @@ import static ro.derbederos.crc.CRCModelSelfCheck.computeResidue;
 
 public abstract class AbstractCRCTest {
     private static final byte[] testInput = "123456789".getBytes();
+    private static final byte[] testInputSample = "alabalaportocala".getBytes();
+    private static final byte[] testInputSampleA = "alabal".getBytes();
+    private static final byte[] testInputSampleB = "aportocala".getBytes();
     private static final byte[] testInputLong = new byte[1024];
 
     static {
@@ -22,73 +26,146 @@ public abstract class AbstractCRCTest {
     }
 
     protected final CRCModel crcModel;
-    private final Function<CRCModel, CRC> supplier;
+    private final CRC crc;
 
     protected AbstractCRCTest(CRCModel crcModel, Function<CRCModel, CRC> supplier) {
         this.crcModel = crcModel;
-        this.supplier = supplier;
+        this.crc = supplier.apply(crcModel);
     }
 
     @Test
     public void testCRCValue() {
-        Checksum checksum = supplier.apply(crcModel);
-        checksum.reset();
-        checksum.update(testInput, 0, testInput.length);
-        long value = checksum.getValue();
+        crc.reset();
+        crc.update(testInput, 0, testInput.length);
+        long value = crc.getValue();
         assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
     }
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        Checksum checksum = supplier.apply(crcModel);
-        checksum.reset();
+        crc.reset();
         for (byte inputByte : testInput) {
-            checksum.update(inputByte);
+            crc.update(inputByte);
         }
-        long value = checksum.getValue();
+        long value = crc.getValue();
         assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
     }
 
     @Test
     public void testCRCValueUpdateBits() {
-        CRC checksum = supplier.apply(crcModel);
-        checksum.reset();
+        crc.reset();
         for (byte inputByte : testInput) {
-            checksum.updateBits(inputByte, 8);
+            crc.updateBits(inputByte, 8);
         }
-        long value = checksum.getValue();
+        long value = crc.getValue();
         assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
     }
 
     @Test
     public void testCRCValueLongAndUnaligned() {
-        Checksum checksum = supplier.apply(crcModel);
-        Checksum checksumSliceBy16 = new CRC64SlicingBy16(crcModel);
+        CRC checksumSliceBy16 = new CRC64SlicingBy16(crcModel);
 
         for (int i = 0; i < 16; i++) {
-            checksumSliceBy16.reset();
-            checksumSliceBy16.update(testInputLong, i % 16, testInputLong.length - i % 16);
-            long expectedValue = checksumSliceBy16.getValue();
-            checksum.reset();
-            checksum.update(testInputLong, i % 16, testInputLong.length - i % 16);
-            long value = checksum.getValue();
+            long expectedValue = computeCrc(checksumSliceBy16, testInputLong,
+                    i % 16, testInputLong.length - i % 16);
+
+            long value = computeCrc(crc, testInputLong, i % 16, testInputLong.length - i % 16);
             assertEquals("at iteration " + i, toHexString(expectedValue), toHexString(value));
         }
     }
 
     @Test
-    public void testResidue() {
-        CRC crc = supplier.apply(crcModel);
+    public void testModelSelfCheckResidue() {
         crc.update(testInput, 0, testInput.length);
         long residue = computeResidue(crc, crcModel);
         assertEquals(toHexString(crcModel.getResidue()), toHexString(residue));
     }
 
     @Test
-    public void testResidueLong() {
-        CRC crc = supplier.apply(crcModel);
+    public void testModelSelfCheckResidueLong() {
         crc.update(testInputLong, 0, testInputLong.length);
         long residue = computeResidue(crc, crcModel);
         assertEquals(toHexString(crcModel.getResidue()), toHexString(residue));
+    }
+
+    @Test
+    public void testGFResidue() {
+        long crcOfCrc = crc.getCrcOfCrc();
+        Assert.assertEquals(toHexString(crcModel.getResidue()), toHexString(crcOfCrc));
+    }
+
+    @Test
+    public void testConcatenate() {
+        long crcExpected = computeCrc(crc, testInputSample, 0, testInputSample.length);
+        long crcA = computeCrc(crc, testInputSampleA, 0, testInputSampleA.length);
+        long crcB = computeCrc(crc, testInputSampleB, 0, testInputSampleB.length);
+
+        long crcActual = crc.concatenate(crcA, crcB, testInputSampleB.length);
+
+        Assert.assertEquals(toHexString(crcExpected), toHexString(crcActual));
+    }
+
+    @Test
+    public void testConcatenateLong() {
+        long crcExpected = computeCrc(crc, testInputLong, 0, testInputLong.length);
+
+        for (int i = 0; i < testInputLong.length; i++) {
+            int bytesB = testInputLong.length - i;
+            long crcA = computeCrc(crc, testInputLong, 0, i);
+            long crcB = computeCrc(crc, testInputLong, i, bytesB);
+            long crcActual = crc.concatenate(crcA, crcB, bytesB);
+
+            assertEquals("at iteration " + i, toHexString(crcExpected), toHexString(crcActual));
+        }
+    }
+
+    @Test
+    public void testConcatenateZeroes() {
+        crc.update(testInputLong, 0, testInputLong.length);
+        long crcInitial = crc.getValue();
+        for (int i = 0; i < 1024; i++) {
+            crc.update(0);
+        }
+        long crcOfZeroesExpected = crc.getValue();
+
+        long crcOfZeroesActual = crc.concatenateZeroes(crcInitial, 1024);
+
+        Assert.assertEquals(toHexString(crcOfZeroesExpected), toHexString(crcOfZeroesActual));
+    }
+
+    @Test
+    public void testAppendZeroes() {
+        crc.update(testInputLong, 0, testInputLong.length);
+        for (int i = 0; i < 1024; i++) {
+            crc.update(0);
+        }
+        long crcOfZeroesExpected = crc.getValue();
+
+        crc.reset();
+        crc.update(testInputLong, 0, testInputLong.length);
+        crc.appendZeroes(1024);
+        long crcOfZeroesActual = crc.getValue();
+
+        Assert.assertEquals(toHexString(crcOfZeroesExpected), toHexString(crcOfZeroesActual));
+    }
+
+    @Test
+    public void testAppend() {
+        long crcExpected = computeCrc(crc, testInputSample, 0, testInputSample.length);
+        long crcB = computeCrc(crc, testInputSampleB, 0, testInputSampleB.length);
+
+        crc.reset();
+        crc.update(testInputSampleA, 0, testInputSampleA.length);
+        crc.append(crcB, testInputSampleB.length);
+
+        long crcActual = crc.getValue();
+
+        Assert.assertEquals(toHexString(crcExpected), toHexString(crcActual));
+    }
+
+    private static long computeCrc(Checksum checksum, byte[] bytes, int offset, int len) {
+        checksum.reset();
+        checksum.update(bytes, offset, len);
+        return checksum.getValue();
     }
 }

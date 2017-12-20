@@ -4,17 +4,19 @@ import ro.derbederos.crc.CRC;
 import ro.derbederos.crc.CRCModel;
 
 import static java.lang.Integer.reverse;
+import static java.lang.Integer.toUnsignedLong;
 import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableReflected;
 import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableUnreflected;
 
 /**
- * Byte-wise CRC implementation that can compute CRC-32 using different models.
+ * Byte-wise CRC implementation that can compute CRC with width &lt;= 32 using different models.
  * We use the algorithm described by Dilip Sarwate in "Computation of Cyclic Redundancy Checks
  * via Table Look-Up", 1988
  */
 public class CRC32 implements CRC {
 
     protected final CRCModel crcModel;
+    protected final GfUtil gfUtil;
     protected final int[] lookupTable;
     protected final int width;
     protected final int poly;
@@ -25,6 +27,7 @@ public class CRC32 implements CRC {
 
     public CRC32(CRCModel crcModel) {
         this.crcModel = crcModel;
+        this.gfUtil = new GfUtil32(crcModel);
         this.width = crcModel.getWidth();
         this.refIn = crcModel.getRefIn();
         this.refOut = crcModel.getRefOut();
@@ -105,16 +108,56 @@ public class CRC32 implements CRC {
 
     @Override
     public long getValue() {
-        long result = crc;
+        long result = toUnsignedLong(crc);
         //reflect output when necessary
         if (refOut != refIn) {
-            result = reverse(crc);
+            result = toUnsignedLong(reverse(crc));
         }
-        result &= 0xFFFFFFFFL;
         if (!refOut) {
             result >>>= 32 - width;
         }
         result = result ^ crcModel.getXorOut();
         return result;
     }
+
+    @Override
+    public void setValue(long crc) {
+        int result = (int) (crc ^ crcModel.getXorOut());
+        if (!refOut) {
+            result <<= 32 - width;
+        }
+        //reflect output when necessary
+        if (refOut != refIn) {
+            result = reverse(result);
+        }
+        this.crc = result;
+    }
+
+    @Override
+    public long getCrcOfCrc() {
+        return reflectIfNeeded(gfUtil.getCrcOfCrc()) ^ crcModel.getXorOut();
+    }
+
+    @Override
+    public long concatenate(long crcA, long crcB, long bytesB) {
+        return reflectIfNeeded(gfUtil.concatenate(reflectIfNeeded(crcA), reflectIfNeeded(crcB), bytesB));
+    }
+
+    @Override
+    public long concatenateZeroes(long crcA, long bytesB) {
+        return reflectIfNeeded(gfUtil.crcOfZeroes(bytesB, reflectIfNeeded(crcA)));
+    }
+
+    private long reflectIfNeeded(long value) {
+        if (!refOut) {
+            return reflect(value);
+        } else {
+            return value;
+        }
+    }
+
+    private long reflect(long value) {
+        return Long.reverse(value) >>> (64 - width);
+    }
+
 }

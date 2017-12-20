@@ -11,8 +11,10 @@ import static java.lang.Long.reverse;
  * (https://code.google.com/archive/p/crcutil/downloads).
  */
 class GfUtil32 implements GfUtil {
-    private int init;
-    private int canonize;
+
+    private final int degree;
+    private final int init;
+    private final int canonize;
     private int x_pow_2n[] = new int[Long.BYTES * 8];
     private int one;
     private int normalize[] = new int[2];
@@ -20,27 +22,24 @@ class GfUtil32 implements GfUtil {
     private long crcOfCrc;
 
     GfUtil32(CRCModel crcModel) {
-        int width = crcModel.getWidth();
-        long poly = reverse(crcModel.getPoly()) >>> (64 - width);
-        long init = reverse(crcModel.getInit()) >>> (64 - width);
-        long xorOut = reverse(crcModel.getXorOut()) >>> (64 - width);
-
-        init((int) poly, width, (int) init, (int) xorOut);
+        degree = crcModel.getWidth();
+        int poly = (int) (reverse(crcModel.getPoly()) >>> (64 - degree));
+        init = (int) (reverse(crcModel.getInit()) >>> (64 - degree));
+        canonize = (int) (reverse(crcModel.getXorOut()) >>> (64 - degree));
+        init(poly);
     }
 
-    private void init(int poly, int degree, int init, int canonize) {
+    private void init(int poly) {
         int one = 1;
         one <<= degree - 1;
         this.one = one;
-        this.init = init;
-        this.canonize = canonize;
 
         this.normalize[0] = 0;
         this.normalize[1] = poly;
 
         int k = one >>> 1;
 
-        for (int i = 0; i < Long.BYTES * 8; i++) {
+        for (int i = 0; i < x_pow_2n.length; i++) {
             this.x_pow_2n[i] = k;
             k = multiply(k, k);
         }
@@ -93,6 +92,7 @@ class GfUtil32 implements GfUtil {
      * Returns (x ** (8 * n) mod P).
      */
     private int Xpow8N(long n) {
+        //works for N < 0x2000000000000000L
         return XpowN(n << 3);
     }
 

@@ -16,10 +16,19 @@ public interface CRC extends Checksum {
         }
     }
 
-//    long concatenate(long crc_A, long crc_B, long bytes_B);
-//
-//    default long combine(long crc_A, long crc_B, long bytes_B) {
-//        return concatenate(crc_A, crc_B, bytes_B);
-//    }
+    void setValue(long crc);
 
+    long getCrcOfCrc();
+
+    long concatenate(long crcA, long crcB, long bytesB);
+
+    default void append(long crcB, long bytesB) {
+        setValue(concatenate(getValue(), crcB, bytesB));
+    }
+
+    long concatenateZeroes(long crcA, long bytesB);
+
+    default void appendZeroes(long bytesB) {
+        setValue(concatenateZeroes(getValue(), bytesB));
+    }
 }

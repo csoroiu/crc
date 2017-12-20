@@ -10,8 +10,10 @@ import static java.lang.Long.reverse;
  * (https://code.google.com/archive/p/crcutil/downloads).
  */
 class GfUtil64 implements GfUtil {
-    private long init;
-    private long canonize;
+
+    private final int degree;
+    private final long init;
+    private final long canonize;
     private long x_pow_2n[] = new long[Long.BYTES * 8];
     private long one;
     private long normalize[] = new long[2];
@@ -19,27 +21,24 @@ class GfUtil64 implements GfUtil {
     private long crcOfCrc;
 
     GfUtil64(CRCModel crcModel) {
-        int width = crcModel.getWidth();
-        long poly = reverse(crcModel.getPoly()) >>> (64 - width);
-        long init = reverse(crcModel.getInit()) >>> (64 - width);
-        long xorOut = reverse(crcModel.getXorOut()) >>> (64 - width);
-
-        init(poly, width, init, xorOut);
+        degree = crcModel.getWidth();
+        long poly = reverse(crcModel.getPoly()) >>> (64 - degree);
+        init = reverse(crcModel.getInit()) >>> (64 - degree);
+        canonize = reverse(crcModel.getXorOut()) >>> (64 - degree);
+        init(poly);
     }
 
-    private void init(long poly, int degree, long init, long canonize) {
+    private void init(long poly) {
         long one = 1;
         one <<= degree - 1;
         this.one = one;
-        this.init = init;
-        this.canonize = canonize;
 
         this.normalize[0] = 0;
         this.normalize[1] = poly;
 
         long k = one >>> 1;
 
-        for (int i = 0; i < Long.BYTES * 8; i++) {
+        for (int i = 0; i < x_pow_2n.length; i++) {
             this.x_pow_2n[i] = k;
             k = multiply(k, k);
         }
@@ -73,7 +72,7 @@ class GfUtil64 implements GfUtil {
     @Override
     public long crcOfZeroes(long bytes, long start) {
         long tmp = multiply(start ^ canonize, Xpow8N(bytes));
-        return (tmp ^ canonize);
+        return tmp ^ canonize;
     }
 
     /**
@@ -91,6 +90,7 @@ class GfUtil64 implements GfUtil {
      * Returns (x ** (8 * n) mod P).
      */
     private long Xpow8N(long n) {
+        //works for N < 0x2000000000000000L
         return XpowN(n << 3);
     }
 
