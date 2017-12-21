@@ -1,6 +1,7 @@
 package ro.derbederos.crc.purejava;
 
 /**
+ * This class contains an optimization over GF functions and crc initialization.
  * https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation
  */
 final class CRC64Util {
