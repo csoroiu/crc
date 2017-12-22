@@ -4,8 +4,8 @@ import ro.derbederos.crc.CRC;
 import ro.derbederos.crc.CRCModel;
 
 import static java.lang.Long.reverse;
-import static ro.derbederos.crc.purejava.CRC64Util.fastInitLookupTableReflected;
-import static ro.derbederos.crc.purejava.CRC64Util.fastInitLookupTableUnreflected;
+import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesReflected;
+import static ro.derbederos.crc.purejava.CRC64Util.initLookupTablesUnreflected;
 
 /**
  * Byte-wise CRC implementation that can compute CRC with width &lt;= 64 using different models.
@@ -16,7 +16,7 @@ public class CRC64 implements CRC {
 
     protected final CRCModel crcModel;
     protected final GfUtil gfUtil;
-    protected final long[] lookupTable;
+    protected final long[][] lookupTables;
     protected final int width;
     protected final long poly;
     protected final long init;
@@ -25,6 +25,10 @@ public class CRC64 implements CRC {
     protected long crc;
 
     public CRC64(CRCModel crcModel) {
+        this(crcModel, 1);
+    }
+
+    CRC64(CRCModel crcModel, int lookupTablesCount) {
         this.crcModel = crcModel;
         this.width = crcModel.getWidth();
         this.refIn = crcModel.getRefIn();
@@ -39,11 +43,11 @@ public class CRC64 implements CRC {
         if (this.refIn) {
             this.poly = reverse(poly);
             this.init = reverse(init);
-            this.lookupTable = fastInitLookupTableReflected(this.poly);
+            this.lookupTables = initLookupTablesReflected(this.poly, lookupTablesCount);
         } else {
             this.poly = poly;
             this.init = init;
-            this.lookupTable = fastInitLookupTableUnreflected(this.poly);
+            this.lookupTables = initLookupTablesUnreflected(this.poly, lookupTablesCount);
         }
         reset();
     }
@@ -61,26 +65,23 @@ public class CRC64 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[((int) crc ^ b) & 0xff];
+            crc = (crc >>> 8) ^ lookupTables[0][((int) crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[((int) (crc >>> 56) ^ b) & 0xff];
+            crc = (crc << 8) ^ lookupTables[0][((int) (crc >>> 56) ^ b) & 0xff];
         }
-    }
-
-    public void update(byte[] src) {
-        update(src, 0, src.length);
     }
 
     @Override
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
-            crc = updateReflected(lookupTable, crc, src, offset, len);
+            crc = updateReflected(lookupTables, crc, src, offset, len);
         } else {
-            crc = updateUnreflected(lookupTable, crc, src, offset, len);
+            crc = updateUnreflected(lookupTables, crc, src, offset, len);
         }
     }
 
-    private static long updateReflected(long[] lookupTable, long crc, byte[] src, int offset, int len) {
+    private static long updateReflected(long[][] lookupTables, long crc, byte[] src, int offset, int len) {
+        long[] lookupTable = lookupTables[0];
         long localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
             localCrc = (localCrc >>> 8) ^ lookupTable[((int) localCrc ^ src[i]) & 0xff];
@@ -88,7 +89,8 @@ public class CRC64 implements CRC {
         return localCrc;
     }
 
-    private static long updateUnreflected(long[] lookupTable, long crc, byte[] src, int offset, int len) {
+    private static long updateUnreflected(long[][] lookupTables, long crc, byte[] src, int offset, int len) {
+        long[] lookupTable = lookupTables[0];
         long localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
             localCrc = (localCrc << 8) ^ lookupTable[((int) (localCrc >>> 56) ^ src[i]) & 0xff];

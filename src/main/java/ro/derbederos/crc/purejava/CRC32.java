@@ -5,8 +5,8 @@ import ro.derbederos.crc.CRCModel;
 
 import static java.lang.Integer.reverse;
 import static java.lang.Integer.toUnsignedLong;
-import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableReflected;
-import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableUnreflected;
+import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesReflected;
+import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
 
 /**
  * Byte-wise CRC implementation that can compute CRC with width &lt;= 32 using different models.
@@ -16,16 +16,20 @@ import static ro.derbederos.crc.purejava.CRC32Util.fastInitLookupTableUnreflecte
 public class CRC32 implements CRC {
 
     protected final CRCModel crcModel;
-    protected final GfUtil gfUtil;
-    protected final int[] lookupTable;
-    protected final int width;
-    protected final int poly;
-    protected final int init;
+    private final GfUtil gfUtil;
+    protected final int[][] lookupTables;
+    private final int width;
+    private final int poly;
+    private final int init;
     protected final boolean refIn; // reflect input data bytes
-    protected final boolean refOut; // resulted sum needs to be reversed before xor
+    private final boolean refOut; // resulted sum needs to be reversed before xor
     protected int crc;
 
     public CRC32(CRCModel crcModel) {
+        this(crcModel, 1);
+    }
+
+    CRC32(CRCModel crcModel, int lookupTablesCount) {
         this.crcModel = crcModel;
         this.width = crcModel.getWidth();
         this.refIn = crcModel.getRefIn();
@@ -40,11 +44,11 @@ public class CRC32 implements CRC {
         if (this.refIn) {
             this.poly = reverse(poly);
             this.init = reverse(init);
-            this.lookupTable = fastInitLookupTableReflected(this.poly);
+            this.lookupTables = initLookupTablesReflected(this.poly, lookupTablesCount);
         } else {
             this.poly = poly;
             this.init = init;
-            this.lookupTable = fastInitLookupTableUnreflected(this.poly);
+            this.lookupTables = initLookupTablesUnreflected(this.poly, lookupTablesCount);
         }
         reset();
     }
@@ -62,26 +66,23 @@ public class CRC32 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTable[(crc ^ b) & 0xff];
+            crc = (crc >>> 8) ^ lookupTables[0][(crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTable[((crc >>> 24) ^ b) & 0xff];
+            crc = (crc << 8) ^ lookupTables[0][((crc >>> 24) ^ b) & 0xff];
         }
-    }
-
-    public void update(byte[] src) {
-        update(src, 0, src.length);
     }
 
     @Override
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
-            crc = updateReflected(lookupTable, crc, src, offset, len);
+            crc = updateReflected(lookupTables, crc, src, offset, len);
         } else {
-            crc = updateUnreflected(lookupTable, crc, src, offset, len);
+            crc = updateUnreflected(lookupTables, crc, src, offset, len);
         }
     }
 
-    private static int updateReflected(int[] lookupTable, int crc, byte[] src, int offset, int len) {
+    private static int updateReflected(int[][] lookupTables, int crc, byte[] src, int offset, int len) {
+        int[] lookupTable = lookupTables[0];
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
             localCrc = (localCrc >>> 8) ^ lookupTable[(localCrc ^ src[i]) & 0xff];
@@ -89,7 +90,8 @@ public class CRC32 implements CRC {
         return localCrc;
     }
 
-    private static int updateUnreflected(int[] lookupTable, int crc, byte[] src, int offset, int len) {
+    private static int updateUnreflected(int[][] lookupTables, int crc, byte[] src, int offset, int len) {
+        int[] lookupTable = lookupTables[0];
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
             localCrc = (localCrc << 8) ^ lookupTable[((localCrc >>> 24) ^ src[i]) & 0xff];

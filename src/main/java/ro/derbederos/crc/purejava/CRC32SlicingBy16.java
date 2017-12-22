@@ -2,9 +2,6 @@ package ro.derbederos.crc.purejava;
 
 import ro.derbederos.crc.CRCModel;
 
-import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesReflected;
-import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
-
 /**
  * Byte-wise CRC implementation that can compute CRC with width &lt;= 32 using different models.
  * It uses slicing-by-16 method (16 tables of 256 elements each).
@@ -14,16 +11,8 @@ import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
  */
 public class CRC32SlicingBy16 extends CRC32 {
 
-    protected final int[][] lookupTables;
-
     public CRC32SlicingBy16(CRCModel crcModel) {
-        super(crcModel);
-        if (this.refIn) {
-            lookupTables = initLookupTablesReflected(this.poly, 16);
-        } else {
-            lookupTables = initLookupTablesUnreflected(this.poly, 16);
-        }
-        lookupTables[0] = lookupTable;
+        super(crcModel, 16);
     }
 
     @Override

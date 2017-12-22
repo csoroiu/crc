@@ -4,6 +4,10 @@ import java.util.zip.Checksum;
 
 public interface CRC extends Checksum {
 
+    default void update(byte[] b) {
+        update(b, 0, b.length);
+    }
+
     CRCModel getCRCModel();
 
     void updateBits(int b, int bits);
