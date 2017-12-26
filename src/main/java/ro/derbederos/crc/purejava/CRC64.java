@@ -99,14 +99,17 @@ public class CRC64 implements CRC {
     }
 
     @Override
-    public void updateBits(int b, int bits) {
-        for (int i = 0; i < bits; i++) {
-            if (refIn) {
-                crc = (crc >>> 1) ^ (poly & ~(((crc ^ b) & 1) - 1));
-                b >>>= 1;
-            } else {
-                crc = (crc << 1) ^ (poly & ~((((crc >>> 63) ^ (b >>> 7)) & 1) - 1));
-                b <<= 1;
+    public void updateBits(long b, int bits) {
+        if (refIn) {
+            long mask = 0xffffffffffffffffL >>> 64 - bits;
+            crc ^= b & mask;
+            for (int i = 0; i < bits; i++) {
+                crc = (crc >>> 1) ^ (poly & -(crc & 1));
+            }
+        } else {
+            crc ^= b << 64 - bits;
+            for (int i = 0; i < bits; i++) {
+                crc = (crc << 1) ^ (poly & -(crc >>> 63));
             }
         }
     }

@@ -100,14 +100,27 @@ public class CRC32 implements CRC {
     }
 
     @Override
-    public void updateBits(int b, int bits) {
-        for (int i = 0; i < bits; i++) {
-            if (refIn) {
-                crc = (crc >>> 1) ^ (poly & ~(((crc ^ b) & 1) - 1));
-                b >>>= 1;
-            } else {
-                crc = (crc << 1) ^ (poly & ~((((crc >>> 31) ^ (b >>> 7)) & 1) - 1));
-                b <<= 1;
+    public void updateBits(long b, int bits) {
+        if (refIn) {
+            long mask = 0xffffffffffffffffL >>> 64 - bits;
+            b &= mask;
+            crc ^= b; //low 32 bits
+            for (int i = 0; i < Math.min(32, bits); i++) {
+                crc = (crc >>> 1) ^ (poly & -(crc & 1));
+            }
+            crc ^= b >>> 32; //high 32 bits
+            for (int i = 32; i < bits; i++) {
+                crc = (crc >>> 1) ^ (poly & -(crc & 1));
+            }
+        } else {
+            b <<= 64 - bits;
+            crc ^= b >>> 32; //high 32 bits
+            for (int i = 0; i < Math.min(32, bits); i++) {
+                crc = (crc << 1) ^ (poly & -(crc >>> 31));
+            }
+            crc ^= b; //low 32 bits
+            for (int i = 32; i < bits; i++) {
+                crc = (crc << 1) ^ (poly & -(crc >>> 31));
             }
         }
     }

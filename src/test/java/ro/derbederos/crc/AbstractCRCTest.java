@@ -35,7 +35,6 @@ public abstract class AbstractCRCTest {
 
     @Test
     public void testCRCValue() {
-        crc.reset();
         crc.update(testInput, 0, testInput.length);
         long value = crc.getValue();
         assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
@@ -43,7 +42,6 @@ public abstract class AbstractCRCTest {
 
     @Test
     public void testCRCValueUpdateOneByOne() {
-        crc.reset();
         for (byte inputByte : testInput) {
             crc.update(inputByte);
         }
@@ -52,13 +50,47 @@ public abstract class AbstractCRCTest {
     }
 
     @Test
-    public void testCRCValueUpdateBits() {
-        crc.reset();
-        for (byte inputByte : testInput) {
-            crc.updateBits(inputByte, 8);
-        }
+    public void testCRCValueUpdateBitsArray() {
+        crc.updateBits(testInput, 0, testInput.length * 8);
         long value = crc.getValue();
         assertEquals(toHexString(crcModel.getCheck()), toHexString(value));
+    }
+
+    @Test
+    public void testCRCValueUpdateBits64() {
+        long input = 0xFEDCBA9876543210L;
+        for (int i = 0; i < 8; i++) {
+            crc.updateBits(input >> 8 * i, 8);
+        }
+        long crcExpected = crc.getValue();
+
+        if (!crcModel.getRefIn()) {
+            input = Long.reverseBytes(input);
+        }
+
+        crc.reset();
+        crc.updateBits(input, 64);
+
+        long crcActual = crc.getValue();
+        assertEquals(toHexString(crcExpected), toHexString(crcActual));
+    }
+
+    @Test
+    public void testCRCValueUpdateBits32() {
+        int input = 0x76543210;
+        for (int i = 0; i < 4; i++) {
+            crc.updateBits(input >> (8 * i), 8);
+        }
+        long crcExpected = crc.getValue();
+
+        if (!crcModel.getRefIn()) {
+            input = Integer.reverseBytes(input);
+        }
+        crc.reset();
+        crc.updateBits(input, 32);
+
+        long crcActual = crc.getValue();
+        assertEquals(toHexString(crcExpected), toHexString(crcActual));
     }
 
     @Test
@@ -66,11 +98,11 @@ public abstract class AbstractCRCTest {
         CRC checksumSliceBy16 = new CRC64SlicingBy16(crcModel);
 
         for (int i = 0; i < 16; i++) {
-            long expectedValue = computeCrc(checksumSliceBy16, testInputLong,
+            long crcExpected = computeCrc(checksumSliceBy16, testInputLong,
                     i % 16, testInputLong.length - i % 16);
 
-            long value = computeCrc(crc, testInputLong, i % 16, testInputLong.length - i % 16);
-            assertEquals("at iteration " + i, toHexString(expectedValue), toHexString(value));
+            long crcActual = computeCrc(crc, testInputLong, i % 16, testInputLong.length - i % 16);
+            assertEquals("at iteration " + i, toHexString(crcExpected), toHexString(crcActual));
         }
     }
 

@@ -47,10 +47,7 @@ public class CRCModelSelfCheck {
         if (crcModel.getRefOut() != crcModel.getRefIn()) {
             input = Long.reverse(input << 64 - crcModel.getWidth());
         }
-        byte[] newBytes = crcModel.getRefIn() ?
-                longToBytes(input, ByteOrder.LITTLE_ENDIAN) :
-                longToBytes(input << 64 - crcModel.getWidth(), ByteOrder.BIG_ENDIAN);
-        crc.updateBits(newBytes, 0, crcModel.getWidth());
+        crc.updateBits(input, crcModel.getWidth());
         // xor to get the residual value of the crc register
         return crc.getValue() ^ crcModel.getXorOut();
     }

@@ -4,6 +4,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import ro.derbederos.crc.purejava.CRC64SlicingBy16;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,9 +16,11 @@ import static org.junit.Assert.assertTrue;
 @RunWith(Parameterized.class)
 public class CRCModelSelfCheckTest {
     private final CRCModel crcModel;
+    private final CRC crc;
 
     public CRCModelSelfCheckTest(CRCModel crcModel) {
         this.crcModel = crcModel;
+        this.crc = new CRC64SlicingBy16(crcModel);
     }
 
     @Test
@@ -32,7 +35,8 @@ public class CRCModelSelfCheckTest {
 
     @Test
     public void testValidateCRCResidue() {
-        assertTrue(CRCModelSelfCheck.validateCRCResidue(crcModel));
+        assertEquals(Long.toHexString(crcModel.getResidue()),
+                Long.toHexString(CRCModelSelfCheck.computeResidue(crc, crcModel)));
     }
 
     @Test

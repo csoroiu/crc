@@ -10,7 +10,7 @@ public interface CRC extends Checksum {
 
     CRCModel getCRCModel();
 
-    void updateBits(int b, int bits);
+    void updateBits(long b, int bits);
 
     default void updateBits(byte[] b, int off, int bits) {
         int len = bits >>> 3;
