@@ -1,0 +1,11 @@
+#found in document about JAMCRC https://web.archive.org/web/20070221144121/http://www.msc.rl.ac.uk/europractice/vendors/dscrc.pdf
+#referred as kermit?
+width=16 poly=0x8408 init=0x0000 refin=true refout=true xorout=0x0000 check=0x0c73 residue=0x0000 name="KERMIT"
+#
+#crc-64-jones - http://protocoltool.sourceforge.net/CRC%20list.html
+width=64 poly=0xAD93D23594C935A9 init=0xffffffffffffffff refin=true refout=true xorout=0x0000000000000000 check=0xCAA717168609F281 residue=0x0000 name="CRC-64/Jones"
+#
+#RFC 8163 - https://www.rfc-editor.org/rfc/rfc8163.txt
+width=32 poly=0x741B8CD7 init=0xffffffff refin=true refout=true xorout=0xffffffff check=0x2d3dd0ae residue=0x0843323B name="CRC-32K"
+#CRC-32K2
+#width=32 poly=0x32583499 init=0xffffffff refin=true refout=true xorout=0xffffffff check=? residue=? name="CRC-32K2"

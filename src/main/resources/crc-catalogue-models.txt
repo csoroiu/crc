@@ -100,3 +100,6 @@ width=64 poly=0x000000000000001b init=0xffffffffffffffff refin=true refout=true 
 width=64 poly=0x42f0e1eba9ea3693 init=0xffffffffffffffff refin=false refout=false xorout=0xffffffffffffffff check=0x62ec59e3f1a4f00a residue=0xfcacbebd5931a992 name="CRC-64/WE"
 width=64 poly=0x42f0e1eba9ea3693 init=0xffffffffffffffff refin=true refout=true xorout=0xffffffffffffffff check=0x995dc9bbdf1939fa residue=0x49958c9abd7d353f name="CRC-64/XZ"
 width=82 poly=0x0308c0111011401440411 init=0x000000000000000000000 refin=true refout=true xorout=0x000000000000000000000 check=0x09ea83f625023801fd612 residue=0x000000000000000000000 name="CRC-82/DARC"
+#extra
+width=32 poly=0x741B8CD7 init=0xffffffff refin=true refout=true xorout=0xffffffff check=0x2d3dd0ae residue=0x0843323B name="CRC-32K"
+width=64 poly=0xAD93D23594C935A9 init=0xffffffffffffffff refin=true refout=true xorout=0x0000000000000000 check=0xCAA717168609F281 residue=0x0000 name="CRC-64/Jones"

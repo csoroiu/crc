@@ -2,6 +2,7 @@ package ro.derbederos.crc;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import ro.derbederos.crc.purejava.crc32.CRC32_JAMCRC;
 
 import java.util.zip.Checksum;
 
@@ -15,7 +16,7 @@ public class CRCFactoryTest {
     @Test
     public void testModelsSize() {
         CRCModel[] crcModels = CRCFactory.getDefinedModels();
-        assertEquals(101, crcModels.length);
+        assertEquals(103, crcModels.length);
     }
 
     @Test
@@ -52,6 +53,6 @@ public class CRCFactoryTest {
     @Test
     public void testGetJAMCRC() {
         Checksum crc = CRCFactory.getCRC("JAMCRC");
-        assertTrue(crc instanceof CRC);
+        assertTrue(crc instanceof CRC32_JAMCRC);
     }
 }

@@ -2,33 +2,41 @@ package ro.derbederos.crc;
 
 import ro.derbederos.crc.purejava.CRC32SlicingBy8;
 import ro.derbederos.crc.purejava.CRC64SlicingBy16;
+import ro.derbederos.crc.purejava.crc32.CRC32_JAMCRC;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Supplier;
 import java.util.zip.Checksum;
 
 public class CRCFactory {
 
     public static final CRCModel CRC32;
+    public static final CRCModel JAMCRC;
     public static final CRCModel CRC32C;
 
     private static Map<String, CRCModel> models = new LinkedHashMap<>();
+    private static Map<CRCModel, Supplier<Checksum>> constructors = new HashMap<>();
     private static boolean javaCrc32cAvailable;
 
     static {
         loadModels();
         CRC32 = getModel("CRC-32");
+        constructors.put(CRC32, java.util.zip.CRC32::new);
+        JAMCRC = getModel("JAMCRC");
+        constructors.put(JAMCRC, CRC32_JAMCRC::new);
+
         CRC32C = getModel("CRC-32C");
-        javaCrc32cAvailable = false;
         try {
-            Class.forName("java.util.zip.CRC32C");
-            javaCrc32cAvailable = true;
+            Class<?> crc32cClass = Class.forName("java.util.zip.CRC32C");
+            constructors.put(CRC32C, java.util.zip.CRC32C::new);
         } catch (ClassNotFoundException ignore) {
         }
     }
@@ -132,10 +140,9 @@ public class CRCFactory {
      * @return the most appropriate, usually the fastest, CRC checksum calculator based on the model input.
      */
     public static Checksum getCRC(CRCModel model) {
-        if (isAlias(CRC32, model)) {
-            return new java.util.zip.CRC32();
-        } else if (javaCrc32cAvailable && isAlias(CRC32C, model)) {
-            return new java.util.zip.CRC32C();
+        Supplier<Checksum> factory;
+        if ((factory = constructors.get(model)) != null) {
+            return factory.get();
         } else if (model.getWidth() <= 32) {
             return new CRC32SlicingBy8(model);
         } else if (model.getWidth() <= 64) {
@@ -152,5 +159,4 @@ public class CRCFactory {
                 reference.getRefOut() == input.getRefOut() &&
                 reference.getXorOut() == input.getXorOut());
     }
-
 }
