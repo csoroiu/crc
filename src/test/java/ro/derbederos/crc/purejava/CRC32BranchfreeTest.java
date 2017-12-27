@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RunWith(Parameterized.class)
-public class CRC32BranchFreeTest extends AbstractCRCTest {
+public class CRC32BranchfreeTest extends AbstractCRCTest {
 
-    public CRC32BranchFreeTest(CRCModel crcModel) {
-        super(crcModel, CRC32BranchFree::new);
+    public CRC32BranchfreeTest(CRCModel crcModel) {
+        super(crcModel, CRC32Branchfree::new);
     }
 
     @Parameterized.Parameters(name = "{0}")

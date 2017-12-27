@@ -65,35 +65,41 @@ public class CRC64 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTables[0][((int) crc ^ b) & 0xff];
+            crc = updateByteReflected(crc, b & 0xFF);
         } else {
-            crc = (crc << 8) ^ lookupTables[0][((int) (crc >>> 56) ^ b) & 0xff];
+            crc = updateByteUnreflected(crc, b & 0xFF);
         }
+    }
+
+    protected long updateByteReflected(long crc, int b) {
+        return (crc >>> 8) ^ lookupTables[0][((int) crc ^ b) & 0xFF];
+    }
+
+    protected long updateByteUnreflected(long crc, int b) {
+        return (crc << 8) ^ lookupTables[0][((int) (crc >>> 56) ^ b) & 0xFF];
     }
 
     @Override
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
-            crc = updateReflected(lookupTables, crc, src, offset, len);
+            crc = updateReflected(crc, src, offset, len);
         } else {
-            crc = updateUnreflected(lookupTables, crc, src, offset, len);
+            crc = updateUnreflected(crc, src, offset, len);
         }
     }
 
-    private static long updateReflected(long[][] lookupTables, long crc, byte[] src, int offset, int len) {
-        long[] lookupTable = lookupTables[0];
+    private long updateReflected(long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[((int) localCrc ^ src[i]) & 0xff];
+            localCrc = updateByteReflected(localCrc, Byte.toUnsignedInt(src[i]));
         }
         return localCrc;
     }
 
-    private static long updateUnreflected(long[][] lookupTables, long crc, byte[] src, int offset, int len) {
-        long[] lookupTable = lookupTables[0];
+    private long updateUnreflected(long crc, byte[] src, int offset, int len) {
         long localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            localCrc = (localCrc << 8) ^ lookupTable[((int) (localCrc >>> 56) ^ src[i]) & 0xff];
+            localCrc = updateByteUnreflected(localCrc, Byte.toUnsignedInt(src[i]));
         }
         return localCrc;
     }
@@ -101,7 +107,7 @@ public class CRC64 implements CRC {
     @Override
     public void updateBits(long b, int bits) {
         if (refIn) {
-            long mask = 0xffffffffffffffffL >>> 64 - bits;
+            long mask = 0xFFFFFFFFFFFFFFFFL >>> 64 - bits;
             crc ^= b & mask;
             for (int i = 0; i < bits; i++) {
                 crc = (crc >>> 1) ^ (poly & -(crc & 1));

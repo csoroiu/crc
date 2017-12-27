@@ -6,8 +6,7 @@ public class CRCModelSelfCheck {
     private static final byte[] testInput = "123456789".getBytes();
 
     public static void validateCRCModelParams(CRCModel crcModel) {
-        long mask = 1L << crcModel.getWidth() - 1;
-        mask |= mask - 1;
+        long mask = 0xFFFFFFFFFFFFFFFFL >>> 64 - crcModel.getWidth();
 
         if ((crcModel.getPoly() & ~mask) != 0) {
             throw new IllegalArgumentException("Poly width too large.");

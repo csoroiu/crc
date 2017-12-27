@@ -11,7 +11,7 @@ final class CRC32Util {
         lookupTable[0x80] = poly;
         int v = poly;
         for (int i = 64; i != 0; i >>>= 1) {
-            v = (v >>> 1) ^ (poly & ~((v & 1) - 1));
+            v = (v >>> 1) ^ (poly & -(v & 1));
             lookupTable[i] = v;
         }
         for (int i = 2; i < 0x100; i <<= 1) {
@@ -28,7 +28,7 @@ final class CRC32Util {
         lookupTable[1] = poly;
         int v = poly;
         for (int i = 2; i <= 0x80; i <<= 1) {
-            v = (v << 1) ^ (poly & ~((v >>> 31) - 1));
+            v = (v << 1) ^ (poly & -(v >>> 31));
             lookupTable[i] = v;
         }
         for (int i = 2; i < 0x100; i <<= 1) {
@@ -80,7 +80,7 @@ final class CRC32Util {
         for (int n = 0; n < 0x100; n++) {
             int v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTables[0][v & 0xff] ^ (v >>> 8);
+                v = lookupTables[0][v & 0xFF] ^ (v >>> 8);
                 lookupTables[k][n] = v;
             }
         }
@@ -96,7 +96,7 @@ final class CRC32Util {
         for (int n = 0; n < 0x100; n++) {
             int v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTables[0][(v >>> 24) & 0xff] ^ (v << 8);
+                v = lookupTables[0][(v >>> 24) & 0xFF] ^ (v << 8);
                 lookupTables[k][n] = v;
             }
         }

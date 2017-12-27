@@ -30,18 +30,18 @@ public class CRC64SlicingBy8 extends CRC64 {
         while (len > 7) {
             int high = (int) (localCrc >>> 32);
             int low = (int) localCrc;
-            localCrc = lookupTables[7][(low ^ src[index++]) & 0xff] ^
-                    lookupTables[6][((low >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTables[5][((low >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTables[4][((low >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTables[3][(high ^ src[index++]) & 0xff] ^
-                    lookupTables[2][((high >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTables[1][((high >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTables[0][((high >>> 24) ^ src[index++]) & 0xff];
+            localCrc = lookupTables[7][(low ^ src[index++]) & 0xFF] ^
+                    lookupTables[6][((low >>> 8) ^ src[index++]) & 0xFF] ^
+                    lookupTables[5][((low >>> 16) ^ src[index++]) & 0xFF] ^
+                    lookupTables[4][((low >>> 24) ^ src[index++]) & 0xFF] ^
+                    lookupTables[3][(high ^ src[index++]) & 0xFF] ^
+                    lookupTables[2][((high >>> 8) ^ src[index++]) & 0xFF] ^
+                    lookupTables[1][((high >>> 16) ^ src[index++]) & 0xFF] ^
+                    lookupTables[0][((high >>> 24) ^ src[index++]) & 0xFF];
             len -= 8;
         }
         while (len > 0) {
-            localCrc = (localCrc >>> 8) ^ lookupTables[0][((int) localCrc ^ src[index++]) & 0xff];
+            localCrc = (localCrc >>> 8) ^ lookupTables[0][((int) localCrc ^ src[index++]) & 0xFF];
             len--;
         }
         return localCrc;
@@ -53,18 +53,18 @@ public class CRC64SlicingBy8 extends CRC64 {
         while (len > 7) {
             int high = (int) (localCrc >>> 32);
             int low = (int) localCrc;
-            localCrc = lookupTables[7][((high >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTables[6][((high >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTables[5][((high >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTables[4][(high ^ src[index++]) & 0xff] ^
-                    lookupTables[3][((low >>> 24) ^ src[index++]) & 0xff] ^
-                    lookupTables[2][((low >>> 16) ^ src[index++]) & 0xff] ^
-                    lookupTables[1][((low >>> 8) ^ src[index++]) & 0xff] ^
-                    lookupTables[0][(low ^ src[index++]) & 0xff];
+            localCrc = lookupTables[7][((high >>> 24) ^ src[index++]) & 0xFF] ^
+                    lookupTables[6][((high >>> 16) ^ src[index++]) & 0xFF] ^
+                    lookupTables[5][((high >>> 8) ^ src[index++]) & 0xFF] ^
+                    lookupTables[4][(high ^ src[index++]) & 0xFF] ^
+                    lookupTables[3][((low >>> 24) ^ src[index++]) & 0xFF] ^
+                    lookupTables[2][((low >>> 16) ^ src[index++]) & 0xFF] ^
+                    lookupTables[1][((low >>> 8) ^ src[index++]) & 0xFF] ^
+                    lookupTables[0][(low ^ src[index++]) & 0xFF];
             len -= 8;
         }
         while (len > 0) {
-            localCrc = (localCrc << 8) ^ lookupTables[0][((int) (localCrc >>> 56) ^ src[index++]) & 0xff];
+            localCrc = (localCrc << 8) ^ lookupTables[0][((int) (localCrc >>> 56) ^ src[index++]) & 0xFF];
             len--;
         }
         return localCrc;

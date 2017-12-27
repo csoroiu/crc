@@ -67,39 +67,43 @@ public class CRC32 implements CRC {
     @Override
     public void update(int b) {
         if (refIn) {
-            crc = (crc >>> 8) ^ lookupTables[0][(crc ^ b) & 0xff];
+            crc = updateByteReflected(crc, b & 0xFF);
         } else {
-            int c = reverseBytes(crc); // we need the high order byte, faster than shift
-            // int c = (crc >>> 24);
-            crc = (crc << 8) ^ lookupTables[0][(c ^ b) & 0xff];
+            crc = updateByteUnreflected(crc, b & 0xFF);
         }
+    }
+
+    protected int updateByteReflected(int crc, int b) {
+        return (crc >>> 8) ^ lookupTables[0][(crc ^ b) & 0xFF];
+    }
+
+    protected int updateByteUnreflected(int crc, int b) {
+        int c = reverseBytes(crc); // we need the high order byte, faster than shift
+        // int c = (crc >>> 24);
+        return (crc << 8) ^ lookupTables[0][(c ^ b) & 0xFF];
     }
 
     @Override
     public void update(byte[] src, int offset, int len) {
         if (refIn) {
-            crc = updateReflected(lookupTables, crc, src, offset, len);
+            crc = updateReflected(crc, src, offset, len);
         } else {
-            crc = updateUnreflected(lookupTables, crc, src, offset, len);
+            crc = updateUnreflected(crc, src, offset, len);
         }
     }
 
-    private static int updateReflected(int[][] lookupTables, int crc, byte[] src, int offset, int len) {
-        int[] lookupTable = lookupTables[0];
+    private int updateReflected(int crc, byte[] src, int offset, int len) {
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            localCrc = (localCrc >>> 8) ^ lookupTable[(localCrc ^ src[i]) & 0xff];
+            localCrc = updateByteReflected(localCrc, Byte.toUnsignedInt(src[i]));
         }
         return localCrc;
     }
 
-    private static int updateUnreflected(int[][] lookupTables, int crc, byte[] src, int offset, int len) {
-        int[] lookupTable = lookupTables[0];
+    private int updateUnreflected(int crc, byte[] src, int offset, int len) {
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            int c = reverseBytes(localCrc); // we need the high order byte, faster than shift
-            // int c = (localCrc >>> 24);
-            localCrc = (localCrc << 8) ^ lookupTable[(c ^ src[i]) & 0xff];
+            localCrc = updateByteUnreflected(localCrc, Byte.toUnsignedInt(src[i]));
         }
         return localCrc;
     }
