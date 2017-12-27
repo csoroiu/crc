@@ -10,11 +10,11 @@ final class CRC32Util {
         lookupTable[0] = 0;
         lookupTable[0x80] = poly;
         int v = poly;
-        for (int i = 64; i != 0; i /= 2) {
+        for (int i = 64; i != 0; i >>>= 1) {
             v = (v >>> 1) ^ (poly & ~((v & 1) - 1));
             lookupTable[i] = v;
         }
-        for (int i = 2; i < 256; i *= 2) {
+        for (int i = 2; i < 0x100; i <<= 1) {
             for (int j = 1; j < i; j++) {
                 lookupTable[i + j] = lookupTable[i] ^ lookupTable[j];
             }
@@ -27,11 +27,11 @@ final class CRC32Util {
         lookupTable[0] = 0;
         lookupTable[1] = poly;
         int v = poly;
-        for (int i = 2; i <= 128; i *= 2) {
+        for (int i = 2; i <= 0x80; i <<= 1) {
             v = (v << 1) ^ (poly & ~((v >>> 31) - 1));
             lookupTable[i] = v;
         }
-        for (int i = 2; i < 256; i *= 2) {
+        for (int i = 2; i < 0x100; i <<= 1) {
             for (int j = 1; j < i; j++) {
                 lookupTable[i + j] = lookupTable[i] ^ lookupTable[j];
             }
@@ -73,8 +73,11 @@ final class CRC32Util {
 
     static int[][] initLookupTablesReflected(int poly, int dimension) {
         int[][] lookupTables = new int[dimension][0x100];
+        if (dimension == 0) {
+            return lookupTables;
+        }
         lookupTables[0] = fastInitLookupTableReflected(poly);
-        for (int n = 0; n < 256; n++) {
+        for (int n = 0; n < 0x100; n++) {
             int v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
                 v = lookupTables[0][v & 0xff] ^ (v >>> 8);
@@ -86,8 +89,11 @@ final class CRC32Util {
 
     static int[][] initLookupTablesUnreflected(int poly, int dimension) {
         int[][] lookupTables = new int[dimension][0x100];
+        if (dimension == 0) {
+            return lookupTables;
+        }
         lookupTables[0] = fastInitLookupTableUnreflected(poly);
-        for (int n = 0; n < 256; n++) {
+        for (int n = 0; n < 0x100; n++) {
             int v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
                 v = lookupTables[0][(v >>> 24) & 0xff] ^ (v << 8);

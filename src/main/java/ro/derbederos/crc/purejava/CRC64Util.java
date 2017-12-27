@@ -10,11 +10,11 @@ final class CRC64Util {
         lookupTable[0] = 0;
         lookupTable[0x80] = poly;
         long v = poly;
-        for (int i = 64; i != 0; i /= 2) {
+        for (int i = 64; i != 0; i >>>= 1) {
             v = (v >>> 1) ^ (poly & ~((v & 1) - 1));
             lookupTable[i] = v;
         }
-        for (int i = 2; i < 256; i *= 2) {
+        for (int i = 2; i < 256; i <<= 1) {
             for (int j = 1; j < i; j++) {
                 lookupTable[i + j] = lookupTable[i] ^ lookupTable[j];
             }
@@ -27,11 +27,11 @@ final class CRC64Util {
         lookupTable[0] = 0;
         lookupTable[1] = poly;
         long v = poly;
-        for (int i = 2; i <= 128; i *= 2) {
+        for (int i = 2; i <= 0x80; i <<= 1) {
             v = (v << 1) ^ (poly & ~((v >>> 63) - 1));
             lookupTable[i] = v;
         }
-        for (int i = 2; i < 256; i *= 2) {
+        for (int i = 2; i < 0x100; i <<= 1) {
             for (int j = 1; j < i; j++) {
                 lookupTable[i + j] = lookupTable[i] ^ lookupTable[j];
             }
@@ -72,28 +72,34 @@ final class CRC64Util {
     }
 
     static long[][] initLookupTablesReflected(long poly, int dimension) {
-        long[][] lookupTable = new long[dimension][0x100];
-        lookupTable[0] = fastInitLookupTableReflected(poly);
-        for (int n = 0; n < 256; n++) {
-            long v = lookupTable[0][n];
+        long[][] lookupTables = new long[dimension][0x100];
+        if (dimension == 0) {
+            return lookupTables;
+        }
+        lookupTables[0] = fastInitLookupTableReflected(poly);
+        for (int n = 0; n < 0x100; n++) {
+            long v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][((int) v & 0xff)] ^ (v >>> 8);
-                lookupTable[k][n] = v;
+                v = lookupTables[0][((int) v & 0xff)] ^ (v >>> 8);
+                lookupTables[k][n] = v;
             }
         }
-        return lookupTable;
+        return lookupTables;
     }
 
     static long[][] initLookupTablesUnreflected(long poly, int dimension) {
-        long[][] lookupTable = new long[dimension][0x100];
-        lookupTable[0] = fastInitLookupTableUnreflected(poly);
-        for (int n = 0; n < 256; n++) {
-            long v = lookupTable[0][n];
+        long[][] lookupTables = new long[dimension][0x100];
+        if (dimension == 0) {
+            return lookupTables;
+        }
+        lookupTables[0] = fastInitLookupTableUnreflected(poly);
+        for (int n = 0; n < 0x100; n++) {
+            long v = lookupTables[0][n];
             for (int k = 1; k < dimension; k++) {
-                v = lookupTable[0][((int) (v >>> 56) & 0xff)] ^ (v << 8);
-                lookupTable[k][n] = v;
+                v = lookupTables[0][((int) (v >>> 56) & 0xff)] ^ (v << 8);
+                lookupTables[k][n] = v;
             }
         }
-        return lookupTable;
+        return lookupTables;
     }
 }

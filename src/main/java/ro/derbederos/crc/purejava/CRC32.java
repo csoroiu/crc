@@ -4,6 +4,7 @@ import ro.derbederos.crc.CRC;
 import ro.derbederos.crc.CRCModel;
 
 import static java.lang.Integer.reverse;
+import static java.lang.Integer.reverseBytes;
 import static java.lang.Integer.toUnsignedLong;
 import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesReflected;
 import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
@@ -16,13 +17,13 @@ import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
 public class CRC32 implements CRC {
 
     protected final CRCModel crcModel;
-    private final GfUtil gfUtil;
+    protected final GfUtil gfUtil;
     protected final int[][] lookupTables;
-    private final int width;
-    private final int poly;
-    private final int init;
+    protected final int width;
+    protected final int poly;
+    protected final int init;
     protected final boolean refIn; // reflect input data bytes
-    private final boolean refOut; // resulted sum needs to be reversed before xor
+    protected final boolean refOut; // resulted sum needs to be reversed before xor
     protected int crc;
 
     public CRC32(CRCModel crcModel) {
@@ -68,7 +69,9 @@ public class CRC32 implements CRC {
         if (refIn) {
             crc = (crc >>> 8) ^ lookupTables[0][(crc ^ b) & 0xff];
         } else {
-            crc = (crc << 8) ^ lookupTables[0][((crc >>> 24) ^ b) & 0xff];
+            int c = reverseBytes(crc); // we need the high order byte, faster than shift
+            // int c = (crc >>> 24);
+            crc = (crc << 8) ^ lookupTables[0][(c ^ b) & 0xff];
         }
     }
 
@@ -94,7 +97,9 @@ public class CRC32 implements CRC {
         int[] lookupTable = lookupTables[0];
         int localCrc = crc;
         for (int i = offset; i < offset + len; i++) {
-            localCrc = (localCrc << 8) ^ lookupTable[((localCrc >>> 24) ^ src[i]) & 0xff];
+            int c = reverseBytes(localCrc); // we need the high order byte, faster than shift
+            // int c = (localCrc >>> 24);
+            localCrc = (localCrc << 8) ^ lookupTable[(c ^ src[i]) & 0xff];
         }
         return localCrc;
     }
@@ -102,25 +107,15 @@ public class CRC32 implements CRC {
     @Override
     public void updateBits(long b, int bits) {
         if (refIn) {
-            long mask = 0xffffffffffffffffL >>> 64 - bits;
-            b &= mask;
-            crc ^= b; //low 32 bits
-            for (int i = 0; i < Math.min(32, bits); i++) {
-                crc = (crc >>> 1) ^ (poly & -(crc & 1));
-            }
-            crc ^= b >>> 32; //high 32 bits
-            for (int i = 32; i < bits; i++) {
-                crc = (crc >>> 1) ^ (poly & -(crc & 1));
+            for (int i = 0; i < bits; i++) {
+                crc = (crc >>> 1) ^ (poly & -((crc ^ (int) b) & 1));
+                b >>>= 1;
             }
         } else {
             b <<= 64 - bits;
-            crc ^= b >>> 32; //high 32 bits
-            for (int i = 0; i < Math.min(32, bits); i++) {
-                crc = (crc << 1) ^ (poly & -(crc >>> 31));
-            }
-            crc ^= b; //low 32 bits
-            for (int i = 32; i < bits; i++) {
-                crc = (crc << 1) ^ (poly & -(crc >>> 31));
+            for (int i = 0; i < bits; i++) {
+                crc = (crc << 1) ^ (poly & -(((crc >>> 31) ^ (int) (b >>> 63)) & 1));
+                b <<= 1;
             }
         }
     }

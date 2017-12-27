@@ -2,9 +2,6 @@ package ro.derbederos.crc;
 
 import ro.derbederos.crc.purejava.CRC64SlicingBy16;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-
 public class CRCModelSelfCheck {
     private static final byte[] testInput = "123456789".getBytes();
 
@@ -50,11 +47,5 @@ public class CRCModelSelfCheck {
         crc.updateBits(input, crcModel.getWidth());
         // xor to get the residual value of the crc register
         return crc.getValue() ^ crcModel.getXorOut();
-    }
-
-    private static byte[] longToBytes(long x, ByteOrder order) {
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES).order(order);
-        buffer.putLong(x);
-        return buffer.array();
     }
 }
