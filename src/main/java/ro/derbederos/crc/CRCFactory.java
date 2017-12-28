@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.StringReader;
+import java.lang.invoke.*;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -24,21 +25,43 @@ public class CRCFactory {
 
     private static Map<String, CRCModel> models = new LinkedHashMap<>();
     private static Map<CRCModel, Supplier<Checksum>> constructors = new HashMap<>();
-    private static boolean javaCrc32cAvailable;
 
     static {
         loadModels();
         CRC32 = getModel("CRC-32");
-        constructors.put(CRC32, java.util.zip.CRC32::new);
+        registerFactory(CRC32, java.util.zip.CRC32::new);
         JAMCRC = getModel("JAMCRC");
-        constructors.put(JAMCRC, CRC32_JAMCRC::new);
-
+        registerFactory(JAMCRC, CRC32_JAMCRC::new);
         CRC32C = getModel("CRC-32C");
-        try {
-            Class<?> crc32cClass = Class.forName("java.util.zip.CRC32C");
-            constructors.put(CRC32C, java.util.zip.CRC32C::new);
-        } catch (ClassNotFoundException ignore) {
+        registerFactory(CRC32C, dynamicConstructor("java.util.zip.CRC32C"));
+    }
+
+    private static void registerFactory(CRCModel model, Supplier<Checksum> constructor) {
+        if (model != null && constructor != null) {
+            constructors.put(model, constructor);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Supplier<Checksum> dynamicConstructor(String className) {
+        try {
+            Class<?> crcClass = Class.forName(className);
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+            MethodHandle constructor = lookup.findConstructor(crcClass, MethodType.methodType(void.class));
+            CallSite site = LambdaMetafactory.metafactory(lookup,
+                    "get",
+                    MethodType.methodType(Supplier.class),
+                    MethodType.methodType(Object.class),
+                    constructor,
+                    MethodType.methodType(Checksum.class));
+            MethodHandle factory = site.getTarget();
+            return (Supplier<Checksum>) factory.invoke();
+        } catch (Throwable ignore) {
+            if (ignore instanceof Error) {
+                throw (Error) ignore;
+            }
+        }
+        return null;
     }
 
     private static void loadModels() {
@@ -149,14 +172,5 @@ public class CRCFactory {
             return new CRC64SlicingBy16(model);
         }
         throw new IllegalArgumentException("CRCFactory: Cannot find a generator for model " + model.getName());
-    }
-
-    private static boolean isAlias(CRCModel reference, CRCModel input) {
-        return reference == input || (reference.getWidth() == input.getWidth() &&
-                reference.getPoly() == input.getPoly() &&
-                reference.getInit() == input.getInit() &&
-                reference.getRefIn() == input.getRefIn() &&
-                reference.getRefOut() == input.getRefOut() &&
-                reference.getXorOut() == input.getXorOut());
     }
 }
