@@ -76,7 +76,7 @@ public class CRC64 implements CRC {
     }
 
     protected long updateByteUnreflected(long crc, int b) {
-        return (crc << 8) ^ lookupTables[0][((int) (crc >>> 56) ^ b) & 0xFF];
+        return (crc << 8) ^ lookupTables[0][(int) (crc >>> 56) ^ b];
     }
 
     @Override

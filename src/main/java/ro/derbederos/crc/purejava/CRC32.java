@@ -4,7 +4,6 @@ import ro.derbederos.crc.CRC;
 import ro.derbederos.crc.CRCModel;
 
 import static java.lang.Integer.reverse;
-import static java.lang.Integer.reverseBytes;
 import static java.lang.Integer.toUnsignedLong;
 import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesReflected;
 import static ro.derbederos.crc.purejava.CRC32Util.initLookupTablesUnreflected;
@@ -78,9 +77,7 @@ public class CRC32 implements CRC {
     }
 
     protected int updateByteUnreflected(int crc, int b) {
-        int c = reverseBytes(crc); // we need the high order byte, faster than shift
-        // int c = (crc >>> 24);
-        return (crc << 8) ^ lookupTables[0][(c ^ b) & 0xFF];
+        return (crc << 8) ^ lookupTables[0][((crc >>> 24) ^ b)];
     }
 
     @Override
