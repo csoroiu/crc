@@ -1,6 +1,9 @@
 # https://github.com/madler/crcany - generic c implementation for any crc
 
-# CRC32C
+# CRC32C intel references
+  2009 - https://www.intel.com/content/dam/www/public/us/en/documents/white-papers/fast-crc-computation-generic-polynomials-pclmulqdq-paper.pdf
+
+  2011 - https://www.intel.com/content/dam/www/public/us/en/documents/white-papers/crc-iscsi-polynomial-crc32-instruction-paper.pdf
   http://www.drdobbs.com/parallel/fast-parallelized-crc-computation-using/229401411
   https://github.com/bloomberg/comdb2/tree/master/crc32c
    - _mm_crc32_u64 & _mm_crc32_u8 + recombination
@@ -9,23 +12,29 @@
    unsigned int _mm_crc32_u32( unsigned int crc, unsigned int data )
    unsigned __int64 _mm_crc32_u64( unsinged __int64 crc, unsigned __int64 data )
 
-   - also, when available uses the PCLMULQDQ instruction
    - https://stackoverflow.com/questions/15752770/mm-crc32-u64-poorly-defined
+   - also, when available uses the PCLMULQDQ instruction
 
 # different crc implementations intel
   - https://github.com/01org/isa-l/tree/master/crc
   - https://github.com/intel/soft-crc
-  CRC32C - SSE4.2
-    https://www.intel.com/content/dam/www/public/us/en/documents/white-papers/crc-iscsi-polynomial-crc32-instruction-paper.pdf
 
-fast table hash calculation
+# power8 CPU crc
+ https://github.com/antonblanchard/crc32-vpmsum
+
+# fast table hash calculation
  https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation
-fast crc32
+# fast crc32
  http://create.stephan-brumme.com/crc32/
 
-# crcutil
+# crcutil - GF explanations and parallel interleaved crc computation technique
+  rolling crc, combining crc's and tests
   https://code.google.com/archive/p/crcutil/downloads - different algorithms
 
+# Combining and splitting CRCs
+  https://www.nicst.de/crc.pdf
+
+https://www.nicst.de/crc.pdf
 # merging 2 crc's
  https://github.com/madler/zlib/blob/master/crc32.c#L372
 

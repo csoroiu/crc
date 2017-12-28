@@ -28,7 +28,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.7.0</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -53,6 +53,9 @@
                 </executions>
                 <configuration>
                     <!-- Only required when JAVA_HOME isn't at least Java 9 and when haven't configured the maven-toolchains-plugin -->
+                    <jdkToolchain>
+                        <version>9</version>
+                    </jdkToolchain>
                     <source>1.8</source>
                     <target>1.8</target>
                     <compilerArgs>
@@ -77,7 +80,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.0-M1</version>
+                <version>3.0.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadoc</id>
@@ -87,6 +90,9 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <jdkToolchain>
+                        <version>9</version>
+                    </jdkToolchain>
                     <source>1.8</source>
                     <sourceFileExcludes>
                         <sourceFileExclude>module-info.java</sourceFileExclude>

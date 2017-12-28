@@ -22,10 +22,10 @@ class GfUtil32Reflected implements GfUtil {
     private long crcOfCrc;
 
     GfUtil32Reflected(CRCModel crcModel) {
-        degree = crcModel.getWidth();
-        int poly = (int) (reverse(crcModel.getPoly()) >>> (64 - degree));
-        init = (int) (reverse(crcModel.getInit()) >>> (64 - degree));
-        canonize = (int) (reverse(crcModel.getXorOut()) >>> (64 - degree));
+        this.degree = crcModel.getWidth();
+        int poly = (int) (reverse(crcModel.getPoly()) >>> (64 - this.degree));
+        this.init = (int) (reverse(crcModel.getInit()) >>> (64 - this.degree));
+        this.canonize = (int) (reverse(crcModel.getXorOut()) >>> (64 - this.degree));
         init(poly);
     }
 
@@ -36,7 +36,7 @@ class GfUtil32Reflected implements GfUtil {
      */
     private void init(int poly) {
         int one = 1;
-        one <<= degree - 1;
+        one <<= this.degree - 1;
         this.one = one;
 
         this.normalize[0] = 0;
@@ -44,12 +44,12 @@ class GfUtil32Reflected implements GfUtil {
 
         int k = one >>> 1;
 
-        for (int i = 0; i < x_pow_2n.length; i++) {
+        for (int i = 0; i < this.x_pow_2n.length; i++) {
             this.x_pow_2n[i] = k;
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = toUnsignedLong(multiply(this.canonize, this.one ^ XpowN(degree)));
+        this.crcOfCrc = toUnsignedLong(multiply(this.canonize, this.one ^ XpowN(this.degree)));
     }
 
     /**
@@ -69,7 +69,7 @@ class GfUtil32Reflected implements GfUtil {
      */
     @Override
     public long concatenate(long crc_A, long crc_B, long bytes_B) {
-        int result = changeStartValue((int) crc_B, bytes_B, init ^ canonize/* start_B */, (int) crc_A);
+        int result = changeStartValue((int) crc_B, bytes_B, this.init ^ this.canonize/* start_B */, (int) crc_A);
         return toUnsignedLong(result);
     }
 
@@ -78,8 +78,8 @@ class GfUtil32Reflected implements GfUtil {
      */
     @Override
     public long crcOfZeroes(long bytes, long start) {
-        int tmp = multiply((int) (start ^ this.canonize), Xpow8N(bytes));
-        return toUnsignedLong(tmp ^ this.canonize);
+        int tmp = this.canonize ^ multiply((int) start ^ this.canonize, Xpow8N(bytes));
+        return toUnsignedLong(tmp);
     }
 
     /**
@@ -118,7 +118,23 @@ class GfUtil32Reflected implements GfUtil {
     /**
      * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
      */
-    private int multiply(int aa, int bb) {
+    //https://github.com/torvalds/linux/blob/master/lib/crc32.c#L213 - gf2_multiply
+    int multiply(int x, int y) {
+        int product = (x & 1) == 1 ? y : 0;
+
+        for (int i = 0; i < this.degree - 1; i++) {
+            product = (product >>> 1) ^ this.normalize[product & 1];
+            x >>>= 1;
+            product ^= (x & 1) == 1 ? y : 0;
+        }
+
+        return product;
+    }
+
+    /**
+     * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
+     */
+    private int multiplyCrcUtil(int aa, int bb) {
         int a = aa;
         int b = bb;
         if (compareUnsigned(a ^ (a - 1), b ^ (b - 1)) < 0) {

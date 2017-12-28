@@ -21,10 +21,10 @@ class GfUtil64Reflected implements GfUtil {
     private long crcOfCrc;
 
     GfUtil64Reflected(CRCModel crcModel) {
-        degree = crcModel.getWidth();
-        long poly = reverse(crcModel.getPoly()) >>> (64 - degree);
-        init = reverse(crcModel.getInit()) >>> (64 - degree);
-        canonize = reverse(crcModel.getXorOut()) >>> (64 - degree);
+        this.degree = crcModel.getWidth();
+        long poly = reverse(crcModel.getPoly()) >>> (64 - this.degree);
+        this.init = reverse(crcModel.getInit()) >>> (64 - this.degree);
+        this.canonize = reverse(crcModel.getXorOut()) >>> (64 - this.degree);
         init(poly);
     }
 
@@ -35,7 +35,7 @@ class GfUtil64Reflected implements GfUtil {
      */
     private void init(long poly) {
         long one = 1;
-        one <<= degree - 1;
+        one <<= this.degree - 1;
         this.one = one;
 
         this.normalize[0] = 0;
@@ -43,12 +43,12 @@ class GfUtil64Reflected implements GfUtil {
 
         long k = one >>> 1;
 
-        for (int i = 0; i < x_pow_2n.length; i++) {
+        for (int i = 0; i < this.x_pow_2n.length; i++) {
             this.x_pow_2n[i] = k;
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = multiply(this.canonize, this.one ^ XpowN(degree));
+        this.crcOfCrc = multiply(this.canonize, this.one ^ XpowN(this.degree));
     }
 
     /**
@@ -68,7 +68,7 @@ class GfUtil64Reflected implements GfUtil {
      */
     @Override
     public long concatenate(long crc_A, long crc_B, long bytes_B) {
-        return changeStartValue(crc_B, bytes_B, init ^ canonize /* start_B */, crc_A);
+        return changeStartValue(crc_B, bytes_B, this.init ^ this.canonize /* start_B */, crc_A);
     }
 
     /**
@@ -76,8 +76,8 @@ class GfUtil64Reflected implements GfUtil {
      */
     @Override
     public long crcOfZeroes(long bytes, long start) {
-        long tmp = multiply(start ^ canonize, Xpow8N(bytes));
-        return tmp ^ canonize;
+        long tmp = this.canonize ^ multiply(start ^ this.canonize, Xpow8N(bytes));
+        return tmp;
     }
 
     /**
@@ -116,7 +116,23 @@ class GfUtil64Reflected implements GfUtil {
     /**
      * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
      */
-    private long multiply(long aa, long bb) {
+    //https://github.com/torvalds/linux/blob/master/lib/crc32.c#L213 - gf2_multiply
+    private long multiply(long x, long y) {
+        long product = (x & 1) == 1 ? y : 0;
+
+        for (int i = 0; i < this.degree - 1; i++) {
+            product = (product >>> 1) ^ this.normalize[(int) (product & 1)];
+            x >>>= 1;
+            product ^= (x & 1) == 1 ? y : 0;
+        }
+
+        return product;
+    }
+
+    /**
+     * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
+     */
+    private long multiplyCrcUtil(long aa, long bb) {
         long a = aa;
         long b = bb;
         if (compareUnsigned(a ^ (a - 1), b ^ (b - 1)) < 0) {
@@ -146,11 +162,12 @@ class GfUtil64Reflected implements GfUtil {
      * and degree of value "unnorm" is provided explicitly.
      */
     private long multiplyUnnormalized(long unnorm, int degree, long m) {
+        long ones = this.one | (this.one - 1);
         long v = unnorm;
         long result = 0;
         while (degree > this.degree) {
             degree -= this.degree;
-            long value = v & (this.one | (this.one - 1));
+            long value = v & ones;
             result ^= multiply(value, multiply(m, XpowN(degree)));
             v >>>= this.degree;
         }
