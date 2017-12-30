@@ -15,9 +15,9 @@ class GfUtil32Reflected implements GfUtil {
     private final int degree;
     private final int init;
     private final int canonize;
-    private int x_pow_2n[] = new int[Long.BYTES * 8];
+    private int[] x_pow_2n = new int[Long.BYTES * 8];
     private int one;
-    private int normalize[] = new int[2];
+    private int[] normalize = new int[2];
 
     private long crcOfCrc;
 
@@ -118,8 +118,15 @@ class GfUtil32Reflected implements GfUtil {
     /**
      * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
      */
+    private int multiply(int aa, int bb) {
+        return multiplyCrcUtil(aa, bb);
+    }
+
+    /**
+     * Returns ((a * b) mod P) where "a" and "b" are of degree <= (D-1).
+     */
     //https://github.com/torvalds/linux/blob/master/lib/crc32.c#L213 - gf2_multiply
-    int multiply(int x, int y) {
+    private int multiplyLinuxKernel(int x, int y) {
         int product = (x & 1) == 1 ? y : 0;
 
         for (int i = 0; i < this.degree - 1; i++) {

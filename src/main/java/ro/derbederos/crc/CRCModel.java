@@ -42,6 +42,18 @@ public final class CRCModel {
         return poly;
     }
 
+    public long getReflectedPoly() {
+        return reflect(poly);
+    }
+
+    public long getReciprocal() {
+        return reflect(getReversedReciprocal());
+    }
+
+    public long getReversedReciprocal() {
+        return poly >>> 1 | (1L << width - 1);
+    }
+
     public long getInit() {
         return init;
     }
@@ -97,5 +109,9 @@ public final class CRCModel {
                 ", check=" + "0x" + toHexString(check) +
                 ", residue=" + "0x" + toHexString(residue) +
                 '}';
+    }
+
+    private long reflect(long value) {
+        return Long.reverse(value) >>> (64 - width);
     }
 }
