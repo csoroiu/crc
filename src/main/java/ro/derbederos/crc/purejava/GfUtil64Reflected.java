@@ -108,17 +108,10 @@ class GfUtil64Reflected implements GfUtil {
     }
 
     /**
-     * Returns (x ** (8 * n) mod P).
-     */
-    private long Xpow8N(long n) {
-        //works for N < 0x2000000000000000L
-        return XpowN(n << 3);
-    }
-
-    /**
      * Returns (x ** n mod P).
      */
-    private long XpowN(long n) {
+    @Override
+    public long XpowN(long n) {
         long result = this.one;
 
         for (int i = 0; n != 0; i++, n >>>= 1) {

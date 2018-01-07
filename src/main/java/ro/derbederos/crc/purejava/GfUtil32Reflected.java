@@ -65,7 +65,7 @@ class GfUtil32Reflected implements GfUtil {
             k = multiply(k, k);
         }
 
-        this.crcOfCrc = toUnsignedLong(multiply(this.canonize, this.one ^ XpowN(this.degree)));
+        this.crcOfCrc = toUnsignedLong(multiply(this.canonize, this.one ^ XpowNInternal(this.degree)));
     }
 
     /**
@@ -73,7 +73,7 @@ class GfUtil32Reflected implements GfUtil {
      * crc=CRC(A, |A|, start_old) -- without touching the data.
      */
     private int changeStartValue(int crc, long bytes, int start_old, int start_new) {
-        return (crc ^ multiply(start_new ^ start_old, Xpow8N(bytes)));
+        return (crc ^ multiply(start_new ^ start_old, Xpow8NInternal(bytes)));
     }
 
     /**
@@ -94,7 +94,7 @@ class GfUtil32Reflected implements GfUtil {
      */
     @Override
     public long crcOfZeroes(long bytes, long start) {
-        int tmp = this.canonize ^ multiply((int) start ^ this.canonize, Xpow8N(bytes));
+        int tmp = this.canonize ^ multiply((int) start ^ this.canonize, Xpow8NInternal(bytes));
         return toUnsignedLong(tmp);
     }
 
@@ -112,15 +112,15 @@ class GfUtil32Reflected implements GfUtil {
     /**
      * Returns (x ** (8 * n) mod P).
      */
-    private int Xpow8N(long n) {
+    int Xpow8NInternal(long n) {
         //works for N < 0x2000000000000000L
-        return XpowN(n << 3);
+        return XpowNInternal(n << 3);
     }
 
     /**
      * Returns (x ** n mod P).
      */
-    private int XpowN(long n) {
+    int XpowNInternal(long n) {
         int result = this.one;
 
         for (int i = 0; n != 0; i++, n >>>= 1) {
@@ -129,6 +129,11 @@ class GfUtil32Reflected implements GfUtil {
             }
         }
         return result;
+    }
+
+    @Override
+    public long XpowN(long n) {
+        return XpowNInternal(n);
     }
 
     /**
@@ -186,14 +191,14 @@ class GfUtil32Reflected implements GfUtil {
      * Returns ((unnorm * m) mod P) where degree of m is <= (D-1)
      * and degree of value "unnorm" is provided explicitly.
      */
-    private int multiplyUnnormalized(int unnorm, int degree, int m) {
+    int multiplyUnnormalized(int unnorm, int degree, int m) {
         int ones = this.one | (this.one - 1);
         int v = unnorm;
         int result = 0;
         while (degree > this.degree) {
             degree -= this.degree;
             int value = v & ones;
-            result ^= multiply(value, multiply(m, XpowN(degree)));
+            result ^= multiply(value, multiply(m, XpowNInternal(degree)));
             v >>>= this.degree;
         }
         result ^= multiply(v << (this.degree - degree), m);

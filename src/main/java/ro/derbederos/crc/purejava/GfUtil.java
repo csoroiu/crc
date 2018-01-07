@@ -43,4 +43,17 @@ interface GfUtil {
      * This is also called <b>residue</b>.
      */
     long getCrcOfCrc();
+
+    /**
+     * Returns (x ** (8 * n) mod P).
+     */
+    default long Xpow8N(long n) {
+        //works for N < 0x2000000000000000L
+        return XpowN(n << 3);
+    }
+
+    /**
+     * Returns (x ** n mod P).
+     */
+    long XpowN(long n);
 }

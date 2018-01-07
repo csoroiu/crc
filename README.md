@@ -29,9 +29,11 @@ This project was build for educational purposes and is far from being complete.
 15. [Linux kernel x86 SSE4.2 PCLMULQDQ and CRC32](https://github.com/torvalds/linux/tree/master/arch/x86/crypto).
 16. [Linux kernel ARMv8 PMULL/NEON and CRC32/CRC32C - port of Intel's SSE4.2 algorithm](https://github.com/torvalds/linux/blob/master/arch/arm/crypto).
 17. [Linux kernel POWER8 VPMSUM CRC](https://github.com/torvalds/linux/tree/master/arch/powerpc/crypto).
+18. [Linux kernel SPARC CRC32C](https://github.com/torvalds/linux/tree/master/arch/powerpc/crypto).
+19. [Linux kernel IBM/Z VGFMAG](https://github.com/torvalds/linux/tree/master/arch/s390/crypto).
 
-18. [CRC Polynomials Evaluation Software](https://users.ece.cmu.edu/~koopman/crc/hdlen.html).
-19. Generate Verilog or VHDL code for CRC. [CRC Generation Tool](http://www.easics.com/webtools/crctool).
-20. Philip Koopman, Carnegie Mellon University. [CRC Polynomials Evaluation Software](https://users.ece.cmu.edu/~koopman/crc/hdlen.html).
-21. [Fast CRC table construction and rolling CRC hash calculation](https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation).
-22. [Fast CRC32](http://create.stephan-brumme.com/crc32/).
+20. [CRC Polynomials Evaluation Software](https://users.ece.cmu.edu/~koopman/crc/hdlen.html).
+21. Generate Verilog or VHDL code for CRC. [CRC Generation Tool](http://www.easics.com/webtools/crctool).
+22. Philip Koopman, Carnegie Mellon University. [CRC Polynomials Evaluation Software](https://users.ece.cmu.edu/~koopman/crc/hdlen.html).
+23. [Fast CRC table construction and rolling CRC hash calculation](https://encode.ru/threads/1698-Fast-CRC-table-construction-and-rolling-CRC-hash-calculation).
+24. [Fast CRC32](http://create.stephan-brumme.com/crc32/).

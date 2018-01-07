@@ -42,6 +42,11 @@ class GfUtilUnreflected implements GfUtil {
         return crcOfCrc;
     }
 
+    @Override
+    public long XpowN(long n) {
+        return reflect(delegate.XpowN(n));
+    }
+
     private long reflect(long value) {
         return Long.reverse(value) >>> (64 - width);
     }
