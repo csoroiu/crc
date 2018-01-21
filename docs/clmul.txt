@@ -1,0 +1,62 @@
+https://www.revolvy.com/main/index.php?s=CLMUL_instruction_set&item_type=topic - CLMUL instruction set
+
+Implementing fast carryless multiplication - https://hal.archives-ouvertes.fr/hal-01579863/document, http://www.texmacs.org/joris/ff2mul/ff2mul.pdf
+
+The Use of Finite Field GF(256) in the Performance Primitives Intel® IPP
+  http://math.nsc.ru/conference/sobolev/100/PDF/Subsection_ECMP/Kirillov.pdf
+
+Carry-Less Multiplication Instruction - https://software.intel.com/sites/default/files/managed/72/cc/clmul-wp-rev-2.02-2014-04-20.pdf
+  Performing Carry-less Multiplication of 128-bit Operands Using PCLMULQDQ - page 13
+  http://www.felixcloutier.com/x86/PCLMULQDQ.html - (instruction pseudocode)
+
+Ibm z Series s390x - VGFM (Vector Galois Field Multiply Sum), VGFMA (Vector Galois Field Multiply Sum and Accumulate)
+ - part of "Vector Facility for z/Architecture (SIMD)"
+  https://www.ibm.com/support/knowledgecenter/SSLTBW_2.2.0/com.ibm.zos.v2r2.cbcpx01/bif_vec_gfmsum_128.htm
+  https://www.ibm.com/support/knowledgecenter/en/SSLTBW_2.2.0/com.ibm.zos.v2r2.cbcpx01/bif_vec_gfmsum_accum_128.htm
+
+Vector Binary Polynomial Multiplication Instructions (VPMSUM - ppc)
+  https://openpowerfoundation.org/?resource_lib=ibm-power-isa-version-2-07-b
+  https://ibm.ent.box.com/s/2osr5l9o3lpfboe26lzh3v6v31iuwfhk - (Power ISA Version 2.07B)
+    - Page 307 - 6.11.3 Vector Binary Polynomial Multiplication Instructions (instruction pseudocode)
+  http://fileadmin.cs.lth.se/cs/education/EDAN25/PowerISA_V2.07_PUBLIC.pdf (Power ISA Version 2.07)
+    - Page 259 - 5.11.3 Vector Binary Polynomial Multiplication Instructions (instruction pseudocode)
+
+Fast Software Polynomial Multiplication on ARM Processors Using the NEON Engine
+  https://hal.inria.fr/hal-01506572/document - KNV algorithm
+
+Binary Field Multiplication on ARMv8
+  https://eprint.iacr.org/2015/688.pdf - KNV algorithm vs proposed KNP
+
+ARM Architecture Reference Manual ARMv8, for ARMv8-A architecture profile
+  https://static.docs.arm.com/ddi0487/ca/DDI0487C_a_armv8_arm.pdf
+    - C7.2.199 - pmul instruction description with pseudocode
+    - C7.2.200 - pmull/pmull2 instructions description with pseudocode
+    - F6.1.139 - vmul instruction description with pseudocode
+    - F6.1.142 - vmull instructions description with pseudocode
+
+Implementing GCM on ARMv8
+  http://conradoplg.cryptoland.net/files/2010/12/gcm14.pdf
+  https://www.rsaconference.com/writable/presentations/file_upload/cryp-w01-secure-and-efficient-implementation-of-aes-based-cryptosystems.pdf
+
+Speeding Up Galois Field Arithmetic on Intel MIC Architecture
+  https://link.springer.com/content/pdf/10.1007/978-3-642-40820-5_13.pdf
+
+Screaming Fast Galois Field Arithmetic Using Intel SIMD Instructions
+  https://www.ssrc.ucsc.edu/Papers/plank-fast13.pdf - J. Plank
+  slides - https://www.usenix.org/sites/default/files/conference/protected-files/plank_fast13_slides2.pdf
+
+http://web.eecs.utk.edu/~plank/plank/papers/CS-07-593/ - Fast Galois Field Arithmetic Library in C/C++ (J. Plank)
+
+Optimizing Galois Field Arithmetic for Diverse Processor Architectures and Applications
+  http://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-mascots08.pdf
+
+Finite Field Arithmetic and Reed-Solomon Coding
+  https://research.swtch.com/field
+
+https://stackoverflow.com/questions/30363903/optimizing-a-reed-solomon-encoder-polynomial-division
+
+https://github.com/Backblaze/JavaReedSolomon/blob/master/src/main/java/com/backblaze/erasure/Galois.java
+
+http://bitmath.blogspot.ro/2013/05/carryless-multiplicative-inverse.html
+
+https://github.com/weidai11/cryptopp/blob/master/cpu.cpp
