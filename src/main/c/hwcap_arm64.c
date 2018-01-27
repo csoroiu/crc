@@ -28,6 +28,10 @@ inline bool queryPMULL() {
     return false;
 }
 
+bool probePMULL() {
+    return false;
+}
+
 inline bool queryCRC32() {
 #if defined(__linux__) && defined(__HW_ARM64__) && defined(__ARM_FEATURE_CRC32)
     if (getauxval(AT_HWCAP) & HWCAP_CRC32)
@@ -39,9 +43,13 @@ inline bool queryCRC32() {
     return false;
 }
 
+bool probeCRC32() {
+    return false;
+}
+
 void detectArmFeatures() {
-    hasPMULL = queryPMULL();
-    hasCRC32 = queryCRC32();
+    hasPMULL = queryPMULL() || probePMULL();
+    hasCRC32 = queryCRC32() || probeCRC32();
     hasCRC32C = hasCRC32;
 }
 

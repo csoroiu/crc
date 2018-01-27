@@ -12,30 +12,37 @@ bool hasPMULL = false;
 bool hasCRC32 = false;
 bool hasCRC32C = false;
 
-inline bool queryPMULL() {
-#if defined(__PCLMUL__)
-    if (_may_i_use_cpu_feature(_FEATURE_PCLMULQDQ))
-        return true;
-#else
-#warning "-mpclmul flag not present"
-#endif
-    return false;
-}
-
-inline bool queryCRC32C() {
-#if defined(__SSE4_2__)
-    if (_may_i_use_cpu_feature(_FEATURE_SSE4_2))
-        return true;
-#else
-#warning "-msse4.2 flag not present"
-#endif
+bool probeSSE2() {
     return false;
 }
 
 void detectX86Features() {
-    hasPMULL = queryPMULL();
+    word32 cpuid0[4]={0}, cpuid1[4]={0};
+    if (!cpuId(1, 0, cpuid1)) {
+        return;
+    }
+    bool hasSSE2 = false;
+    // SSE2 supported by CPU
+    if ((cpuid1[3] & (1 << 26)) != 0) {
+        // XSAVE enabled by OS
+        hasSSE2 = ((cpuid1[2] & (1 << 27)) != 0) || probeSSE2();
+    }
+    #if defined(__SSE4_2__)
+        bool hasSSE2 && ((cpuid1[2] & (1<<20)) != 0);
+    #else
+        bool hasSSE42 = false;
+        #warning "-msse4.2 flag not present"
+    #endif
+
+    #if defined(__PCLMUL__)
+        hasPMULL = hasSSE2 && ((cpuid1[2] & (1<< 1)) != 0);
+    #else
+        hasPMULL = false;
+        #warning "-mpclmul flag not present"
+    #endif
+
     hasCRC32 = false;
-    hasCRC32C = queryCRC32C();
+    hasCRC32C = hasSSE42;
 }
 
 int main()
