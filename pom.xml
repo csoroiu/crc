@@ -36,11 +36,23 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <junit.version>4.12</junit.version>
-        <jacoco.version>0.7.9</jacoco.version>
+        <jacoco.version>0.8.1</jacoco.version>
     </properties>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <archive>
+                        <manifestEntries>
+                            <Automatic-Module-Name>ro.derbederos.crc</Automatic-Module-Name>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -51,7 +63,7 @@
                         <configuration>
                             <!-- compile everything to ensure module-info contains right entries -->
                             <!-- required when JAVA_HOME is JDK 8 or below -->
-                            <release>9</release>
+                            <release>10</release>
                         </configuration>
                     </execution>
                     <execution>
@@ -70,7 +82,7 @@
                 <configuration>
                     <!-- Only required when JAVA_HOME isn't at least Java 9 and when haven't configured the maven-toolchains-plugin -->
                     <jdkToolchain>
-                        <version>9</version>
+                        <version>10</version>
                     </jdkToolchain>
                     <source>1.8</source>
                     <target>1.8</target>
@@ -79,6 +91,13 @@
                     </compilerArgs>
                     <showDeprecation>true</showDeprecation>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.ow2.asm</groupId>
+                        <artifactId>asm</artifactId>
+                        <version>6.2</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -96,7 +115,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.0.1</version>
                 <executions>
                     <execution>
                         <id>attach-javadoc</id>
@@ -107,7 +126,7 @@
                 </executions>
                 <configuration>
                     <jdkToolchain>
-                        <version>9</version>
+                        <version>10</version>
                     </jdkToolchain>
                     <source>1.8</source>
                     <sourceFileExcludes>
@@ -115,6 +134,7 @@
                     </sourceFileExcludes>
                     <!-- this seems to be an issue with javadoc which needs User-Agent set -->
                     <additionalJOption>-J-Dhttp.agent=javadoc</additionalJOption>
+                    <additionalOptions>-html5</additionalOptions>
                     <failOnError>false</failOnError>
                     <links/>
                 </configuration>
